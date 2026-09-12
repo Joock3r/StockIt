@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>StockIt - רשימת קניות ומלאי</title>
+<meta name="theme-color" content="#22c55e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StockIt">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface-2: #eef0f3;
+    --text: #14161a;
+    --text-dim: #6b7280;
+    --border: #e3e5e9;
+    --shadow: 0 6px 20px rgba(20,22,26,0.08);
+    --accent: #22c55e;
+    --accent-dim: #dcfce7;
+    --danger: #ef4444;
+    --danger-dim: #fee2e2;
+    --warn: #f97316;
+    --warn-dim: #ffedd5;
+    --radius: 12px;
+    --radius-sm: 8px;
+
+    --dep-fruit: #22c55e;      --dep-fruit-bg: #dcfce7;
+    --dep-dairy: #3b82f6;      --dep-dairy-bg: #dbeafe;
+    --dep-meat: #ef4444;       --dep-meat-bg: #fee2e2;
+    --dep-frozen: #06b6d4;     --dep-frozen-bg: #cffafe;
+    --dep-dry: #d97706;        --dep-dry-bg: #fef3c7;
+    --dep-clean: #8b5cf6;      --dep-clean-bg: #ede9fe;
+    --dep-drinks: #ec4899;     --dep-drinks-bg: #fce7f3;
+    --dep-misc: #6b7280;       --dep-misc-bg: #e5e7eb;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0f1115;
+    --surface: #1a1d23;
+    --surface-2: #23262e;
+    --text: #f2f3f5;
+    --text-dim: #9aa0aa;
+    --border: #2c2f38;
+    --shadow: 0 6px 24px rgba(0,0,0,0.4);
+    --accent: #34d399;
+    --accent-dim: #0f3d2a;
+    --danger: #f87171;
+    --danger-dim: #3f1414;
+    --warn: #fb923c;
+    --warn-dim: #422006;
+
+    --dep-fruit-bg: #113322;
+    --dep-dairy-bg: #10233d;
+    --dep-meat-bg: #3a1414;
+    --dep-frozen-bg: #0b2f36;
+    --dep-dry-bg: #3a2a06;
+    --dep-clean-bg: #241a3d;
+    --dep-drinks-bg: #3a1130;
+    --dep-misc-bg: #2a2d33;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
+  }
+  .mono { font-family: 'Space Mono', monospace; }
+  button { font-family: inherit; }
+  input, select { font-family: 'Heebo', sans-serif; }
+
+  #app { max-width: 560px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ---------- Header ---------- */
+  header.topbar {
+    position: sticky; top: 0; z-index: 30;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+  }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
+  .brand .emoji { font-size: 22px; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 17px;
+  }
+  .user-chip { display: flex; align-items: center; gap: 6px; }
+  .user-chip img { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent); }
+  .user-name { font-size: 12px; color: var(--text-dim); max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- Login screen ---------- */
+  #loginScreen {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center; gap: 18px;
+  }
+  #loginScreen .emoji-big { font-size: 64px; }
+  #loginScreen h1 { font-size: 22px; margin: 0; }
+  #loginScreen p { color: var(--text-dim); margin: 0; font-size: 14px; max-width: 280px; }
+  #gsiButtonContainer { margin-top: 10px; }
+
+  /* ---------- Tabs ---------- */
+  nav.tabbar {
+    position: sticky; bottom: 0; z-index: 30;
+    display: flex; background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+  }
+  nav.tabbar button {
+    flex: 1; border: none; background: transparent; color: var(--text-dim);
+    padding: 8px 4px; border-radius: var(--radius-sm); cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 12px; font-weight: 600;
+  }
+  nav.tabbar button .tab-emoji { font-size: 20px; }
+  nav.tabbar button.active { color: var(--accent); background: var(--accent-dim); }
+
+  /* ---------- Search ---------- */
+  .search-wrap { padding: 12px 16px 4px; }
+  .search-box {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 14px;
+  }
+  .search-box input {
+    flex: 1; border: none; background: transparent; color: var(--text); font-size: 14px; outline: none;
+  }
+  .search-box .emoji { opacity: 0.6; }
+
+  main { flex: 1; padding: 4px 16px 24px; overflow-y: auto; }
+
+  /* ---------- Section / dept groups ---------- */
+  .dept-group { margin-top: 16px; }
+  .dept-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 0 2px;
+  }
+  .dept-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dept-title { font-size: 13px; font-weight: 700; color: var(--text-dim); }
+  .dept-count { font-size: 11px; color: var(--text-dim); margin-inline-start: auto; }
+
+  /* ---------- Item card ---------- */
+  .item-card-wrap { position: relative; margin-bottom: 8px; border-radius: var(--radius); overflow: hidden; }
+  .item-card-wrap .delete-bg {
+    position: absolute; inset: 0; background: var(--danger); color: #fff;
+    display: flex; align-items: center; justify-content: flex-start; padding: 0 18px;
+    font-size: 13px; font-weight: 700;
+  }
+  [dir="rtl"] .item-card-wrap .delete-bg { justify-content: flex-start; }
+  .item-card {
+    position: relative; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    touch-action: pan-y;
+  }
+  .item-card.purchased .item-name { text-decoration: line-through; color: var(--text-dim); }
+  .item-card.purchased { opacity: 0.7; }
+
+  .checkbox {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid var(--border); background: var(--surface);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 13px; color: transparent;
+  }
+  .checkbox.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-weight: 600; font-size: 14.5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .item-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+  .badge {
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap;
+  }
+  .badge-auto { background: var(--warn-dim); color: var(--warn); }
+  .badge-dept { color: #fff; }
+
+  .qty-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .qty-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text); font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .qty-val { min-width: 34px; text-align: center; font-size: 14px; font-weight: 700; }
+
+  .low-stock { border-color: var(--warn) !important; background: var(--warn-dim) !important; }
+  .low-stock .item-name { color: var(--warn); }
+
+  .empty-state {
+    text-align: center; padding: 48px 20px; color: var(--text-dim);
+  }
+  .empty-state .emoji { font-size: 40px; display: block; margin-bottom: 10px; }
+
+  /* ---------- FAB & add forms ---------- */
+  .fab {
+    position: fixed; bottom: calc(78px + env(safe-area-inset-bottom)); left: 50%;
+    transform: translateX(-50%);
+    max-width: 560px; width: calc(100% - 32px);
+    z-index: 25; display: flex; justify-content: center; pointer-events: none;
+  }
+  .fab button {
+    pointer-events: all;
+    background: var(--accent); color: #06210f; border: none;
+    padding: 13px 26px; border-radius: 999px; font-weight: 800; font-size: 14.5px;
+    box-shadow: 0 8px 20px rgba(34,197,94,0.35); cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .clear-btn-wrap { padding: 4px 2px 8px; display: flex; justify-content: flex-end; }
+  .clear-btn {
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ---------- Modal / bottom sheet ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50;
+    display: none; align-items: flex-end; justify-content: center;
+  }
+  .overlay.open { display: flex; }
+  .sheet {
+    background: var(--surface); width: 100%; max-width: 560px;
+    border-radius: 20px 20px 0 0; padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
+    max-height: 88vh; overflow-y: auto;
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 14px; }
+  .sheet h2 { font-size: 17px; margin: 0 0 14px; }
+
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 5px; font-weight: 600; }
+  .form-row input[type="text"], .form-row input[type="number"], .form-row select {
+    width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text); font-size: 14px; outline: none;
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .primary-btn {
+    width: 100%; background: var(--accent); color: #06210f; border: none;
+    padding: 13px; border-radius: var(--radius-sm); font-weight: 800; font-size: 14.5px; cursor: pointer; margin-top: 4px;
+  }
+  .secondary-btn {
+    width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+    padding: 12px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13.5px; cursor: pointer; margin-top: 8px;
+  }
+
+  .transfer-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .transfer-row:last-of-type { border-bottom: none; }
+  .transfer-row .t-name { flex: 1; font-size: 14px; font-weight: 600; }
+  .transfer-row .t-qty { display: flex; align-items: center; gap: 6px; }
+  .transfer-row .t-add label { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-dim); }
+
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 999px;
+    font-size: 13px; z-index: 80; opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
+    max-width: 85%; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+
+  .confirm-box {
+    position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); padding: 20px;
+  }
+  .confirm-box.open { display: flex; }
+  .confirm-card {
+    background: var(--surface); border-radius: var(--radius); padding: 20px; max-width: 340px; width: 100%;
+    text-align: center;
+  }
+  .confirm-card p { font-size: 14px; margin: 0 0 16px; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-actions button { flex: 1; padding: 10px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; }
+  .confirm-actions .cancel { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .confirm-actions .ok { background: var(--accent); color: #06210f; }
+
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); display: inline-block; margin-inline-end: 4px; }
+  .sync-dot.live { background: var(--accent); }
+  .sync-status { font-size: 10.5px; color: var(--text-dim); display: flex; align-items: center; padding: 0 16px 4px; }
+
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand"><span class="emoji">🛒</span><span>StockIt</span></div>
+    <div class="header-actions">
+      <button class="icon-btn" id="themeToggle" title="החלף מצב תצוגה">🌙</button>
+      <div id="userChip" class="user-chip" style="display:none;">
+        <img id="userAvatar" src="" alt="">
+        <span id="userName" class="user-name"></span>
+        <button class="icon-btn" id="signOutBtn" title="יציאה">🚪</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ Login screen ============ -->
+  <div id="loginScreen" style="display:none;">
+    <div class="emoji-big">🛍️</div>
+    <h1>ברוכים הבאים</h1>
+    <p>התחברו כדי לנהל את רשימת הקניות והמלאי של הבית, בזמן אמת, יחד עם בני המשפחה.</p>
+    <div id="gsiButtonContainer"></div>
+  </div>
+
+  <!-- ============ Main app ============ -->
+  <div id="mainApp" style="display:none; flex:1; display:flex; flex-direction:column;">
+    <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncText">מסתנכרן…</span></div>
+
+    <div class="search-wrap">
+      <div class="search-box">
+        <span class="emoji">🔎</span>
+        <input type="text" id="searchInput" placeholder="חיפוש מוצר…">
+      </div>
+    </div>
+
+    <div class="clear-btn-wrap" id="clearBtnWrap" style="display:none;">
+      <button class="clear-btn" id="openClearModalBtn">✅ ניקוי סימונים</button>
+    </div>
+
+    <main id="mainContent"></main>
+  </div>
+
+  <nav class="tabbar" id="tabbar" style="display:none;">
+    <button class="active" data-tab="shopping"><span class="tab-emoji">🛒</span>רשימת קניות</button>
+    <button data-tab="inventory"><span class="tab-emoji">📦</span>ניהול מלאי</button>
+  </nav>
+
+  <div class="fab" id="fabWrap" style="display:none;">
+    <button id="fabAddBtn">➕ הוספת מוצר</button>
+  </div>
+</div>
+
+<!-- ============ Add item sheet ============ -->
+<div class="overlay" id="addSheetOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 id="addSheetTitle">הוספת מוצר לרשימת הקניות</h2>
+    <div class="form-row">
+      <label>שם המוצר</label>
+      <input type="text" id="newItemName" placeholder="לדוגמה: חלב">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>כמות</label>
+        <input type="number" id="newItemQty" value="1" min="0" step="0.5">
+      </div>
+      <div class="form-row">
+        <label>יחידת מידה</label>
+        <select id="newItemUnit">
+          <option value="יחידה">יחידה</option>
+          <option value="גרם">גרם</option>
+          <option value="ק״ג">ק״ג</option>
+          <option value="מ״ל">מ״ל</option>
+          <option value="ליטר">ליטר</option>
+          <option value="חבילה">חבילה</option>
+          <option value="מארז">מארז</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>מחלקה</label>
+      <select id="newItemDept"></select>
+    </div>
+    <button class="primary-btn" id="confirmAddBtn">הוספה</button>
+    <button class="secondary-btn" id="cancelAddBtn">ביטול</button>
+  </div>
+</div>
+
+<!-- ============ Clear checked -> transfer to inventory modal ============ -->
+<div class="overlay" id="clearSheetOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>עדכון מלאי מפריטים שנקנו</h2>
+    <div id="transferList"></div>
+    <button class="primary-btn" id="confirmTransferBtn">סיום ועדכון מלאי</button>
+    <button class="secondary-btn" id="cancelTransferBtn">ביטול</button>
+  </div>
+</div>
+
+<!-- ============ Duplicate confirm ============ -->
+<div class="confirm-box" id="dupConfirmBox">
+  <div class="confirm-card">
+    <p id="dupConfirmText"></p>
+    <div class="confirm-actions">
+      <button class="cancel" id="dupCancelBtn">ביטול</button>
+      <button class="ok" id="dupOkBtn">הוסף לכמות</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   CONFIG
+   ========================================================================= */
+// TODO: replace with your deployed Google Apps Script Web App URL (Code.gs)
+const API_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+// TODO: replace with your Google OAuth Client ID (Google Cloud Console)
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+const POLL_INTERVAL_MS = 9000;
+
+const DEPARTMENTS = [
+  { key: 'פירות וירקות', color: 'var(--dep-fruit)', bg: 'var(--dep-fruit-bg)' },
+  { key: 'מוצרי חלב', color: 'var(--dep-dairy)', bg: 'var(--dep-dairy-bg)' },
+  { key: 'בשר ודגים', color: 'var(--dep-meat)', bg: 'var(--dep-meat-bg)' },
+  { key: 'קפואים', color: 'var(--dep-frozen)', bg: 'var(--dep-frozen-bg)' },
+  { key: 'מאפים ויבשים', color: 'var(--dep-dry)', bg: 'var(--dep-dry-bg)' },
+  { key: 'ניקיון ופארם', color: 'var(--dep-clean)', bg: 'var(--dep-clean-bg)' },
+  { key: 'שתייה וחטיפים', color: 'var(--dep-drinks)', bg: 'var(--dep-drinks-bg)' },
+  { key: 'שונות', color: 'var(--dep-misc)', bg: 'var(--dep-misc-bg)' }
+];
+
+// Auto-mapping dictionary: product name (substring, lowercase) -> department
+const PRODUCT_DEPARTMENT_MAP = {
+  'חלב': 'מוצרי חלב', 'גבינה': 'מוצרי חלב', 'יוגורט': 'מוצרי חלב', 'שמנת': 'מוצרי חלב', 'חמאה': 'מוצרי חלב', 'קוטג': 'מוצרי חלב', 'לבן': 'מוצרי חלב',
+  'עגבני': 'פירות וירקות', 'מלפפון': 'פירות וירקות', 'תפוח': 'פירות וירקות', 'בננה': 'פירות וירקות', 'בצל': 'פירות וירקות', 'תפוז': 'פירות וירקות', 'פלפל': 'פירות וירקות', 'גזר': 'פירות וירקות', 'תות': 'פירות וירקות', 'ירקות': 'פירות וירקות', 'פירות': 'פירות וירקות', 'חסה': 'פירות וירקות', 'לימון': 'פירות וירקות', 'תפו"א': 'פירות וירקות', 'תפוח אדמה': 'פירות וירקות',
+  'עוף': 'בשר ודגים', 'בקר': 'בשר ודגים', 'בשר': 'בשר ודגים', 'דג': 'בשר ודגים', 'סלמון': 'בשר ודגים', 'טונה': 'בשר ודגים', 'נקניק': 'בשר ודגים', 'שניצל': 'בשר ודגים', 'הודו': 'בשר ודגים',
+  'פיצה קפוא': 'קפואים', 'גלידה': 'קפואים', 'קפוא': 'קפואים', 'שוקולד קר': 'קפואים', 'ירקות קפואים': 'קפואים',
+  'לחם': 'מאפים ויבשים', 'פיתה': 'מאפים ויבשים', 'אורז': 'מאפים ויבשים', 'פסטה': 'מאפים ויבשים', 'קמח': 'מאפים ויבשים', 'סוכר': 'מאפים ויבשים', 'שימורים': 'מאפים ויבשים', 'קורנפלקס': 'מאפים ויבשים', 'עוגי': 'מאפים ויבשים', 'ביסקוויט': 'מאפים ויבשים',
+  'סבון': 'ניקיון ופארם', 'אקונומיקה': 'ניקיון ופארם', 'שמפו': 'ניקיון ופארם', 'נייר טואלט': 'ניקיון ופארם', 'מגבון': 'ניקיון ופארם', 'משחת שיניים': 'ניקיון ופארם', 'דאודורנט': 'ניקיון ופארם', 'מרכך': 'ניקיון ופארם', 'אבקת כביסה': 'ניקיון ופארם',
+  'קולה': 'שתייה וחטיפים', 'מיץ': 'שתייה וחטיפים', 'מים': 'שתייה וחטיפים', 'בירה': 'שתייה וחטיפים', 'חטיף': 'שתייה וחטיפים', 'במבה': 'שתייה וחטיפים', 'ביסלי': 'שתייה וחטיפים', 'שוקולד': 'שתייה וחטיפים', 'קפה': 'שתייה וחטיפים', 'תה': 'שתייה וחטיפים'
+};
+
+function guessDepartment(name) {
+  const n = (name || '').trim().toLowerCase();
+  for (const key in PRODUCT_DEPARTMENT_MAP) {
+    if (n.indexOf(key.toLowerCase()) !== -1) return PRODUCT_DEPARTMENT_MAP[key];
+  }
+  return null; // caller falls back to manual selection / "שונות"
+}
+
+function deptInfo(name) {
+  return DEPARTMENTS.find(d => d.key === name) || DEPARTMENTS[DEPARTMENTS.length - 1];
+}
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+const state = {
+  user: null,             // { name, email, picture, sub }
+  activeTab: 'shopping',
+  shopping: [],           // [{id,itemName,department,quantity,unit,isPurchased,isAutoAdded,createdAt}]
+  inventory: [],          // [{id,itemName,department,quantity,unit,updatedAt}]
+  search: '',
+  pollTimer: null,
+  addTarget: 'shopping',  // which sheet the add-form targets
+  pendingTransfer: []     // built when opening the "clear checked" modal
+};
+
+/* =========================================================================
+   UTIL
+   ========================================================================= */
+function uid() { return 'tmp-' + Math.random().toString(36).slice(2, 10); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function setSyncStatus(live) {
+  document.getElementById('syncDot').classList.toggle('live', live);
+  document.getElementById('syncText').textContent = live ? 'מסונכרן' : 'מסתנכרן…';
+}
+
+/* =========================================================================
+   API LAYER
+   ========================================================================= */
+async function apiCall(action, payload) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight to Apps Script
+      body: JSON.stringify({ action, payload: payload || {}, user: state.user ? state.user.email : null })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Unknown API error');
+    return json.data;
+  } catch (err) {
+    console.error('API error:', err);
+    setSyncStatus(false);
+    throw err;
+  }
+}
+
+async function fetchAppData() {
+  const data = await apiCall('getAppData');
+  state.shopping = data.shopping || [];
+  state.inventory = data.inventory || [];
+  setSyncStatus(true);
+  render();
+}
+
+function startPolling() {
+  stopPolling();
+  fetchAppData().catch(() => {});
+  state.pollTimer = setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      fetchAppData().catch(() => {});
+    }
+  }, POLL_INTERVAL_MS);
+}
+function stopPolling() {
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  state.pollTimer = null;
+}
+
+/* =========================================================================
+   AUTH (Google Identity Services)
+   ========================================================================= */
+function initGoogleSignIn() {
+  if (!window.google || !google.accounts) { setTimeout(initGoogleSignIn, 300); return; }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+    auto_select: true
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('gsiButtonContainer'),
+    { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with', locale: 'he' }
+  );
+  google.accounts.id.prompt();
+}
+
+function parseJwt(token) {
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+  return JSON.parse(jsonPayload);
+}
+
+function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  state.user = {
+    name: payload.name,
+    email: payload.email,
+    picture: payload.picture,
+    sub: payload.sub
+  };
+  localStorage.setItem('shopapp_user', JSON.stringify(state.user));
+  showApp();
+}
+
+function signOut() {
+  state.user = null;
+  localStorage.removeItem('shopapp_user');
+  stopPolling();
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('tabbar').style.display = 'none';
+  document.getElementById('fabWrap').style.display = 'none';
+  document.getElementById('userChip').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('tabbar').style.display = 'flex';
+  document.getElementById('fabWrap').style.display = 'flex';
+  document.getElementById('userChip').style.display = 'flex';
+  document.getElementById('userAvatar').src = state.user.picture || '';
+  document.getElementById('userName').textContent = state.user.name || state.user.email || '';
+  startPolling();
+}
+
+/* =========================================================================
+   THEME
+   ========================================================================= */
+function initTheme() {
+  const saved = localStorage.getItem('shopapp_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('shopapp_theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+
+/* =========================================================================
+   RENDER
+   ========================================================================= */
+function render() {
+  renderClearBtnVisibility();
+  if (state.activeTab === 'shopping') renderShopping();
+  else renderInventory();
+}
+
+function filteredShopping() {
+  const q = state.search.trim().toLowerCase();
+  return state.shopping.filter(i => !q || i.itemName.toLowerCase().includes(q));
+}
+function filteredInventory() {
+  const q = state.search.trim().toLowerCase();
+  return state.inventory.filter(i => !q || i.itemName.toLowerCase().includes(q));
+}
+
+function groupByDept(items) {
+  const groups = {};
+  items.forEach(i => {
+    const d = i.department || 'שונות';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(i);
+  });
+  return groups;
+}
+
+function renderClearBtnVisibility() {
+  const anyChecked = state.shopping.some(i => i.isPurchased);
+  document.getElementById('clearBtnWrap').style.display = (state.activeTab === 'shopping' && anyChecked) ? 'flex' : 'none';
+}
+
+function renderShopping() {
+  const main = document.getElementById('mainContent');
+  const items = filteredShopping();
+  if (!items.length) {
+    main.innerHTML = '<div class="empty-state"><span class="emoji">🧺</span>הרשימה ריקה. הוסיפו מוצר ראשון!</div>';
+    return;
+  }
+  const groups = groupByDept(items);
+  let html = '';
+  DEPARTMENTS.forEach(dept => {
+    const group = groups[dept.key];
+    if (!group || !group.length) return;
+    html += `<div class="dept-group">
+      <div class="dept-header">
+        <span class="dept-dot" style="background:${dept.color}"></span>
+        <span class="dept-title">${dept.key}</span>
+        <span class="dept-count mono">${group.length}</span>
+      </div>`;
+    group.sort((a, b) => (a.isPurchased === b.isPurchased) ? 0 : (a.isPurchased ? 1 : -1));
+    group.forEach(item => { html += shoppingItemCard(item, dept); });
+    html += '</div>';
+  });
+  main.innerHTML = html;
+  attachShoppingHandlers();
+}
+
+function shoppingItemCard(item, dept) {
+  return `
+  <div class="item-card-wrap" data-id="${item.id}">
+    <div class="delete-bg">🗑️ מחיקה</div>
+    <div class="item-card ${item.isPurchased ? 'purchased' : ''}" data-id="${item.id}">
+      <div class="checkbox ${item.isPurchased ? 'checked' : ''}" data-action="toggle" data-id="${item.id}">${item.isPurchased ? '✓' : ''}</div>
+      <div class="item-info">
+        <div class="item-name">
+          ${escapeHtml(item.itemName)}
+          ${item.isAutoAdded ? '<span class="badge badge-auto">⚠️ מלאי אוזל</span>' : ''}
+        </div>
+        <div class="item-sub mono">${item.quantity} ${item.unit}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderInventory() {
+  const main = document.getElementById('mainContent');
+  const items = filteredInventory();
+  if (!items.length) {
+    main.innerHTML = '<div class="empty-state"><span class="emoji">📦</span>אין עדיין פריטים במלאי.</div>';
+    return;
+  }
+  const groups = groupByDept(items);
+  let html = '';
+  DEPARTMENTS.forEach(dept => {
+    const group = groups[dept.key];
+    if (!group || !group.length) return;
+    html += `<div class="dept-group">
+      <div class="dept-header">
+        <span class="dept-dot" style="background:${dept.color}"></span>
+        <span class="dept-title">${dept.key}</span>
+        <span class="dept-count mono">${group.length}</span>
+      </div>`;
+    group.forEach(item => { html += inventoryItemCard(item); });
+    html += '</div>';
+  });
+  main.innerHTML = html;
+  attachInventoryHandlers();
+}
+
+function inventoryItemCard(item) {
+  const low = item.quantity <= 1;
+  return `
+  <div class="item-card ${low ? 'low-stock' : ''}" data-id="${item.id}" style="margin-bottom:8px;">
+    <div class="item-info">
+      <div class="item-name">${escapeHtml(item.itemName)}</div>
+      <div class="item-sub">${item.unit}</div>
+    </div>
+    <div class="qty-controls">
+      <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+      <span class="qty-val mono" data-qty-for="${item.id}">${item.quantity}</span>
+      <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+    </div>
+  </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =========================================================================
+   SHOPPING TAB INTERACTIONS
+   ========================================================================= */
+function attachShoppingHandlers() {
+  document.querySelectorAll('[data-action="toggle"]').forEach(el => {
+    el.addEventListener('click', () => toggleItemPurchased(el.dataset.id));
+  });
+  document.querySelectorAll('.item-card-wrap').forEach(wrap => attachSwipeToDelete(wrap));
+}
+
+function toggleItemPurchased(id) {
+  const item = state.shopping.find(i => i.id === id);
+  if (!item) return;
+  item.isPurchased = !item.isPurchased; // optimistic
+  render();
+  apiCall('updateItem', { sheetName: 'ShoppingList', id, fields: { IsPurchased: item.isPurchased } })
+    .catch(() => showToast('שגיאת סנכרון — ננסה שוב'));
+}
+
+function attachSwipeToDelete(wrap) {
+  const card = wrap.querySelector('.item-card');
+  let startX = 0, currentX = 0, dragging = false;
+  const threshold = 90;
+
+  const onStart = (x) => { startX = x; dragging = true; card.style.transition = 'none'; };
+  const onMove = (x) => {
+    if (!dragging) return;
+    currentX = x - startX;
+    // RTL: swipe left (negative direction in LTR terms) reveals delete -> use negative currentX
+    const clamped = Math.min(0, currentX);
+    card.style.transform = `translateX(${clamped}px)`;
+  };
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = 'transform 0.15s ease';
+    if (currentX < -threshold) {
+      card.style.transform = `translateX(-120%)`;
+      setTimeout(() => deleteShoppingItem(wrap.dataset.id), 150);
+    } else {
+      card.style.transform = 'translateX(0)';
+    }
+    currentX = 0;
+  };
+
+  card.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX), { passive: true });
+  card.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX), { passive: true });
+  card.addEventListener('touchend', onEnd);
+
+  // Mouse support (desktop testing)
+  card.addEventListener('mousedown', (e) => { onStart(e.clientX); });
+  window.addEventListener('mousemove', (e) => { if (dragging) onMove(e.clientX); });
+  window.addEventListener('mouseup', onEnd);
+}
+
+function deleteShoppingItem(id) {
+  state.shopping = state.shopping.filter(i => i.id !== id); // optimistic
+  render();
+  apiCall('deleteItems', { sheetName: 'ShoppingList', ids: [id] })
+    .catch(() => showToast('שגיאת סנכרון בעת מחיקה'));
+}
+
+/* =========================================================================
+   INVENTORY TAB INTERACTIONS
+   ========================================================================= */
+function attachInventoryHandlers() {
+  document.querySelectorAll('[data-action="inc"]').forEach(el => {
+    el.addEventListener('click', () => bumpInventory(el.dataset.id, 1));
+  });
+  document.querySelectorAll('[data-action="dec"]').forEach(el => {
+    el.addEventListener('click', () => bumpInventory(el.dataset.id, -1));
+  });
+}
+
+function bumpInventory(id, delta) {
+  const item = state.inventory.find(i => i.id === id);
+  if (!item) return;
+  item.quantity = Math.max(0, item.quantity + delta); // optimistic
+  render();
+  apiCall('updateItem', { sheetName: 'Inventory', id, fields: { Quantity: item.quantity } })
+    .catch(() => showToast('שגיאת סנכרון במלאי'));
+}
+
+/* =========================================================================
+   ADD ITEM SHEET
+   ========================================================================= */
+function populateDeptSelect() {
+  const sel = document.getElementById('newItemDept');
+  sel.innerHTML = DEPARTMENTS.map(d => `<option value="${d.key}">${d.key}</option>`).join('');
+}
+
+function openAddSheet(target) {
+  state.addTarget = target;
+  document.getElementById('addSheetTitle').textContent =
+    target === 'inventory' ? 'הוספת מוצר למלאי' : 'הוספת מוצר לרשימת הקניות';
+  document.getElementById('newItemName').value = '';
+  document.getElementById('newItemQty').value = 1;
+  document.getElementById('newItemUnit').value = 'יחידה';
+  document.getElementById('newItemDept').value = 'שונות';
+  document.getElementById('addSheetOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('newItemName').focus(), 50);
+}
+function closeAddSheet() { document.getElementById('addSheetOverlay').classList.remove('open'); }
+
+document.getElementById('newItemName').addEventListener('input', (e) => {
+  const guess = guessDepartment(e.target.value);
+  if (guess) document.getElementById('newItemDept').value = guess;
+});
+
+document.getElementById('cancelAddBtn').addEventListener('click', closeAddSheet);
+document.getElementById('addSheetOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'addSheetOverlay') closeAddSheet();
+});
+
+document.getElementById('confirmAddBtn').addEventListener('click', () => {
+  const name = document.getElementById('newItemName').value.trim();
+  if (!name) { showToast('נא להזין שם מוצר'); return; }
+  const qty = parseFloat(document.getElementById('newItemQty').value) || 1;
+  const unit = document.getElementById('newItemUnit').value;
+  const dept = document.getElementById('newItemDept').value;
+
+  if (state.addTarget === 'shopping') {
+    const dup = state.shopping.find(i => i.itemName.trim().toLowerCase() === name.toLowerCase());
+    if (dup) {
+      showDupConfirm(name, () => {
+        dup.quantity += qty;
+        render();
+        apiCall('updateItem', { sheetName: 'ShoppingList', id: dup.id, fields: { Quantity: dup.quantity } })
+          .catch(() => showToast('שגיאת סנכרון'));
+        closeAddSheet();
+      });
+      return;
+    }
+    addShoppingItemFlow(name, qty, unit, dept);
+  } else {
+    const dup = state.inventory.find(i => i.itemName.trim().toLowerCase() === name.toLowerCase());
+    if (dup) {
+      showDupConfirm(name, () => {
+        dup.quantity += qty;
+        render();
+        apiCall('updateItem', { sheetName: 'Inventory', id: dup.id, fields: { Quantity: dup.quantity } })
+          .catch(() => showToast('שגיאת סנכרון'));
+        closeAddSheet();
+      });
+      return;
+    }
+    addInventoryItemFlow(name, qty, unit, dept);
+  }
+  closeAddSheet();
+});
+
+function addShoppingItemFlow(name, qty, unit, dept) {
+  const tempId = uid();
+  state.shopping.push({ id: tempId, itemName: name, department: dept, quantity: qty, unit, isPurchased: false, isAutoAdded: false, createdAt: new Date().toISOString() });
+  render();
+  apiCall('addShoppingItem', { item: { itemName: name, department: dept, quantity: qty, unit } })
+    .then((res) => { const item = state.shopping.find(i => i.id === tempId); if (item && res && res.id) item.id = res.id; })
+    .catch(() => showToast('שגיאת סנכרון בעת הוספה'));
+}
+function addInventoryItemFlow(name, qty, unit, dept) {
+  const tempId = uid();
+  state.inventory.push({ id: tempId, itemName: name, department: dept, quantity: qty, unit, updatedAt: new Date().toISOString() });
+  render();
+  apiCall('addInventoryItem', { item: { itemName: name, department: dept, quantity: qty, unit } })
+    .then((res) => { const item = state.inventory.find(i => i.id === tempId); if (item && res && res.id) item.id = res.id; })
+    .catch(() => showToast('שגיאת סנכרון בעת הוספה'));
+}
+
+/* Duplicate confirm dialog */
+let dupConfirmCallback = null;
+function showDupConfirm(name, onConfirm) {
+  document.getElementById('dupConfirmText').textContent = `המוצר "${name}" כבר קיים ברשימה. האם להוסיף לכמות הקיימת?`;
+  dupConfirmCallback = onConfirm;
+  document.getElementById('dupConfirmBox').classList.add('open');
+}
+document.getElementById('dupCancelBtn').addEventListener('click', () => {
+  document.getElementById('dupConfirmBox').classList.remove('open');
+  dupConfirmCallback = null;
+});
+document.getElementById('dupOkBtn').addEventListener('click', () => {
+  document.getElementById('dupConfirmBox').classList.remove('open');
+  if (dupConfirmCallback) dupConfirmCallback();
+  dupConfirmCallback = null;
+});
+
+/* =========================================================================
+   CLEAR CHECKED -> TRANSFER TO INVENTORY
+   ========================================================================= */
+function openClearModal() {
+  const checked = state.shopping.filter(i => i.isPurchased);
+  if (!checked.length) return;
+  state.pendingTransfer = checked.map(i => ({
+    id: i.id, itemName: i.itemName, department: i.department, unit: i.unit,
+    quantityToAdd: i.quantity, addToInventory: true
+  }));
+  renderTransferList();
+  document.getElementById('clearSheetOverlay').classList.add('open');
+}
+function closeClearModal() { document.getElementById('clearSheetOverlay').classList.remove('open'); }
+
+function renderTransferList() {
+  const wrap = document.getElementById('transferList');
+  wrap.innerHTML = state.pendingTransfer.map(p => `
+    <div class="transfer-row" data-id="${p.id}">
+      <div class="t-name">${escapeHtml(p.itemName)}</div>
+      <div class="t-qty">
+        <button class="qty-btn" data-action="t-dec" data-id="${p.id}">−</button>
+        <span class="qty-val mono" data-t-qty="${p.id}">${p.quantityToAdd}</span>
+        <button class="qty-btn" data-action="t-inc" data-id="${p.id}">+</button>
+      </div>
+      <div class="t-add">
+        <label><input type="checkbox" data-action="t-toggle" data-id="${p.id}" ${p.addToInventory ? 'checked' : ''}> הוסף למלאי</label>
+      </div>
+    </div>`).join('');
+
+  wrap.querySelectorAll('[data-action="t-inc"]').forEach(el => el.addEventListener('click', () => bumpTransfer(el.dataset.id, 1)));
+  wrap.querySelectorAll('[data-action="t-dec"]').forEach(el => el.addEventListener('click', () => bumpTransfer(el.dataset.id, -1)));
+  wrap.querySelectorAll('[data-action="t-toggle"]').forEach(el => el.addEventListener('change', () => {
+    const p = state.pendingTransfer.find(x => x.id === el.dataset.id);
+    if (p) p.addToInventory = el.checked;
+  }));
+}
+function bumpTransfer(id, delta) {
+  const p = state.pendingTransfer.find(x => x.id === id);
+  if (!p) return;
+  p.quantityToAdd = Math.max(0, p.quantityToAdd + delta);
+  document.querySelector(`[data-t-qty="${id}"]`).textContent = p.quantityToAdd;
+}
+
+document.getElementById('openClearModalBtn').addEventListener('click', openClearModal);
+document.getElementById('cancelTransferBtn').addEventListener('click', closeClearModal);
+document.getElementById('clearSheetOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'clearSheetOverlay') closeClearModal();
+});
+
+document.getElementById('confirmTransferBtn').addEventListener('click', () => {
+  const toAdd = state.pendingTransfer.filter(p => p.addToInventory);
+  const allIds = state.pendingTransfer.map(p => p.id);
+
+  // Optimistic: remove all checked items from shopping list regardless of inventory choice
+  state.shopping = state.shopping.filter(i => allIds.indexOf(i.id) === -1);
+
+  // Optimistic: merge into local inventory view for the ones flagged
+  toAdd.forEach(p => {
+    const existing = state.inventory.find(i => i.itemName.trim().toLowerCase() === p.itemName.trim().toLowerCase());
+    if (existing) existing.quantity += p.quantityToAdd;
+    else state.inventory.push({ id: uid(), itemName: p.itemName, department: p.department, quantity: p.quantityToAdd, unit: p.unit, updatedAt: new Date().toISOString() });
+  });
+
+  render();
+  closeClearModal();
+  showToast('המלאי עודכן ✅');
+
+  apiCall('transferToInventory', { purchasedItems: toAdd })
+    .then(() => apiCall('deleteItems', { sheetName: 'ShoppingList', ids: allIds.filter(id => toAdd.every(p => p.id !== id)) }))
+    .then(fetchAppData)
+    .catch(() => showToast('שגיאת סנכרון — נסה לרענן'));
+});
+
+/* =========================================================================
+   TABS / SEARCH / THEME / SIGN-OUT WIRING
+   ========================================================================= */
+document.querySelectorAll('#tabbar button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tabbar button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.activeTab = btn.dataset.tab;
+    document.getElementById('searchInput').value = '';
+    state.search = '';
+    render();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  state.search = e.target.value;
+  render();
+});
+
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+document.getElementById('signOutBtn').addEventListener('click', signOut);
+document.getElementById('fabAddBtn').addEventListener('click', () => openAddSheet(state.activeTab));
+
+/* =========================================================================
+   PWA: SERVICE WORKER
+   ========================================================================= */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW registration failed', err));
+  });
+}
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+function init() {
+  initTheme();
+  populateDeptSelect();
+
+  const savedUser = localStorage.getItem('shopapp_user');
+  if (savedUser) {
+    try {
+      state.user = JSON.parse(savedUser);
+      showApp();
+    } catch (e) { /* ignore */ }
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+  initGoogleSignIn();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
