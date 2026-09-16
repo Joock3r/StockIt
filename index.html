@@ -854,21 +854,44 @@ function toggleItemPurchased(id) {
 
 function attachSwipeToDelete(wrap, onTap) {
   const card = wrap.querySelector('.item-card');
-  let startX = 0, currentX = 0, dragging = false, maxDrag = 0;
+  let startX = 0, currentX = 0, dragging = false, maxDrag = 0, activePointerId = null;
   const threshold = 90;
   const tapThreshold = 8;
 
-  const onStart = (x) => { startX = x; dragging = true; maxDrag = 0; card.style.transition = 'none'; };
-  const onMove = (x) => {
-    if (!dragging) return;
-    currentX = x - startX;
+  // Pointer Events unify touch/mouse/pen into a single stream. Using this
+  // instead of separate touch+mouse listeners avoids two real bugs:
+  // 1) Browsers fire "ghost" compatibility mouse events shortly after a
+  //    real touch tap. Since marking an item re-sorts the list right away,
+  //    a ghost event landing after the DOM reshuffled could hit a
+  //    DIFFERENT card that slid into the tapped item's old position —
+  //    toggling the wrong item.
+  // 2) The old code attached fresh mousemove/mouseup listeners to `window`
+  //    on every single re-render and never removed them — a growing leak
+  //    that also meant multiple stale handlers could fire per interaction.
+  // Pointer capture below keeps move/up events targeted at this exact card
+  // even if the finger drifts, with no window-level listeners needed.
+
+  card.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return; // ignore right/middle click
+    activePointerId = e.pointerId;
+    startX = e.clientX;
+    dragging = true;
+    maxDrag = 0;
+    card.style.transition = 'none';
+    card.setPointerCapture(activePointerId);
+  });
+
+  card.addEventListener('pointermove', (e) => {
+    if (!dragging || e.pointerId !== activePointerId) return;
+    currentX = e.clientX - startX;
     maxDrag = Math.max(maxDrag, Math.abs(currentX));
     // RTL: swipe left reveals delete -> use negative currentX
     const clamped = Math.min(0, currentX);
     card.style.transform = `translateX(${clamped}px)`;
-  };
-  const onEnd = () => {
-    if (!dragging) return;
+  });
+
+  const endInteraction = (e) => {
+    if (!dragging || (e && e.pointerId !== activePointerId)) return;
     dragging = false;
     card.style.transition = 'transform 0.15s ease';
     if (currentX < -threshold) {
@@ -879,16 +902,11 @@ function attachSwipeToDelete(wrap, onTap) {
       if (maxDrag < tapThreshold && onTap) onTap();
     }
     currentX = 0;
+    activePointerId = null;
   };
 
-  card.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX), { passive: true });
-  card.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX), { passive: true });
-  card.addEventListener('touchend', onEnd);
-
-  // Mouse support (desktop testing)
-  card.addEventListener('mousedown', (e) => { onStart(e.clientX); });
-  window.addEventListener('mousemove', (e) => { if (dragging) onMove(e.clientX); });
-  window.addEventListener('mouseup', onEnd);
+  card.addEventListener('pointerup', endInteraction);
+  card.addEventListener('pointercancel', endInteraction);
 }
 
 function deleteShoppingItem(id) {
