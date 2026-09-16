@@ -503,7 +503,7 @@ async function apiCall(action, payload) {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight to Apps Script
       body: JSON.stringify({
         action,
-        payload: Object.assign({}, payload || {}, action === 'login' ? {} : { sessionToken: state.sessionToken })
+        payload: Object.assign({}, payload || {}, (action === 'login' || action === 'loginAndFetch') ? {} : { sessionToken: state.sessionToken })
       })
     });
     const json = await res.json();
@@ -528,7 +528,21 @@ async function fetchAppData() {
   state.shopping = mergeWithPending_(state.shopping, data.shopping || [], state.pendingShoppingIds, state.pendingDeleteShoppingIds);
   state.inventory = mergeWithPending_(state.inventory, data.inventory || [], state.pendingInventoryIds, state.pendingDeleteInventoryIds);
   setSyncStatus(true);
+  cacheAppDataLocally_();
   render();
+}
+
+/**
+ * Persists the last known good shopping/inventory data to localStorage so
+ * the NEXT page load can paint instantly from cache (possibly a few seconds
+ * stale) instead of a blank screen while the first real request is still in
+ * flight — Apps Script's own round-trip latency (cold starts especially)
+ * is otherwise the slowest visible part of opening the app.
+ */
+function cacheAppDataLocally_() {
+  try {
+    localStorage.setItem('shopapp_data_cache', JSON.stringify({ shopping: state.shopping, inventory: state.inventory }));
+  } catch (e) { /* storage full or unavailable — non-critical, skip */ }
 }
 
 /**
@@ -557,9 +571,11 @@ function mergeWithPending_(localArr, serverArr, pendingEditIds, pendingDeleteIds
   return merged;
 }
 
-function startPolling() {
+function startPolling(opts) {
   stopPolling();
-  fetchAppData().catch(() => {});
+  if (!opts || !opts.skipInitialFetch) {
+    fetchAppData().catch(() => {});
+  }
   state.pollTimer = setInterval(() => {
     if (document.visibilityState === 'visible') {
       fetchAppData().catch(() => {});
@@ -603,12 +619,17 @@ function handleCredentialResponse(response) {
   const decoded = parseJwt(response.credential);
   showToast('מתחבר בשם ' + (decoded.name || decoded.email) + '…');
 
-  apiCall('login', { idToken: response.credential })
+  apiCall('loginAndFetch', { idToken: response.credential })
     .then((session) => {
       state.user = { name: session.name, email: session.email, picture: session.picture };
       state.sessionToken = session.sessionToken;
       localStorage.setItem('shopapp_session', JSON.stringify({ user: state.user, sessionToken: state.sessionToken }));
-      showApp();
+      // Comes back in the same round trip as login — no separate getAppData() wait.
+      state.shopping = (session.appData && session.appData.shopping) || [];
+      state.inventory = (session.appData && session.appData.inventory) || [];
+      cacheAppDataLocally_();
+      setSyncStatus(true);
+      showApp({ skipInitialFetch: true });
     })
     .catch((err) => {
       if (err.code === 'not_authorized') {
@@ -647,7 +668,10 @@ function handleSessionLoss() {
 function signOut() {
   state.user = null;
   state.sessionToken = null;
+  state.shopping = [];
+  state.inventory = [];
   localStorage.removeItem('shopapp_session');
+  localStorage.removeItem('shopapp_data_cache');
   stopPolling();
   if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   document.getElementById('mainApp').style.display = 'none';
@@ -657,7 +681,7 @@ function signOut() {
   document.getElementById('loginScreen').style.display = 'flex';
 }
 
-function showApp() {
+function showApp(opts) {
   document.getElementById('loginError').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
@@ -666,7 +690,8 @@ function showApp() {
   document.getElementById('userChip').style.display = 'flex';
   document.getElementById('userAvatar').src = state.user.picture || '';
   document.getElementById('userName').textContent = state.user.name || state.user.email || '';
-  startPolling();
+  render(); // paint whatever's already in state (fresh data or a local cache) before the network catches up
+  startPolling(opts);
 }
 
 /* =========================================================================
@@ -1130,7 +1155,14 @@ function init() {
       if (parsed.user && parsed.sessionToken) {
         state.user = parsed.user;
         state.sessionToken = parsed.sessionToken;
-        showApp();
+        try {
+          const cachedData = JSON.parse(localStorage.getItem('shopapp_data_cache') || 'null');
+          if (cachedData) {
+            state.shopping = cachedData.shopping || [];
+            state.inventory = cachedData.inventory || [];
+          }
+        } catch (e) { /* no usable cache — showApp() still works, just starts empty */ }
+        showApp(); // paints the cached data (if any) right away; startPolling() then refreshes for real
         // Confirm the session is still valid server-side; fetchAppData()
         // (called by startPolling inside showApp) will trigger
         // handleSessionLoss() automatically if it's expired or revoked.
