@@ -489,7 +489,9 @@ const state = {
   pendingShoppingIds: new Set(),   // item ids with an in-flight edit — poll merges keep the local value
   pendingInventoryIds: new Set(),
   pendingDeleteShoppingIds: new Set(), // item ids being deleted — poll merges drop these even if the server still has them
-  pendingDeleteInventoryIds: new Set()
+  pendingDeleteInventoryIds: new Set(),
+  interactionActive: false, // true between pointerdown and pointerup/cancel on a card
+  renderPending: false      // a render() got deferred while interactionActive was true
 };
 
 /* =========================================================================
@@ -731,6 +733,8 @@ function toggleTheme() {
    RENDER
    ========================================================================= */
 function render() {
+  if (state.interactionActive) { state.renderPending = true; return; }
+  state.renderPending = false;
   renderClearBtnVisibility();
   if (state.activeTab === 'shopping') renderShopping();
   else renderInventory();
@@ -779,7 +783,6 @@ function renderShopping() {
         <span class="dept-count mono">${group.length}</span>
       </div>
       <div class="shopping-grid">`;
-    group.sort((a, b) => (a.isPurchased === b.isPurchased) ? 0 : (a.isPurchased ? 1 : -1));
     group.forEach(item => { html += shoppingItemCard(item, dept); });
     html += '</div></div>';
   });
@@ -873,7 +876,7 @@ function attachSwipeToDelete(wrap, onTap) {
   const card = wrap.querySelector('.item-card');
   let startX = 0, currentX = 0, dragging = false, maxDrag = 0, activePointerId = null;
   const threshold = 90;
-  const tapThreshold = 8;
+  const tapThreshold = 16; // forgiving enough for normal finger jitter on a real tap
 
   // Pointer Events unify touch/mouse/pen into a single stream. Using this
   // instead of separate touch+mouse listeners avoids two real bugs:
@@ -887,6 +890,12 @@ function attachSwipeToDelete(wrap, onTap) {
   //    that also meant multiple stale handlers could fire per interaction.
   // Pointer capture below keeps move/up events targeted at this exact card
   // even if the finger drifts, with no window-level listeners needed.
+  //
+  // state.interactionActive additionally guards against a background poll
+  // rebuilding the whole grid (innerHTML) WHILE a finger is still down on a
+  // card — that would detach the very element holding pointer capture and
+  // could silently swallow the tap's pointerup. render() defers itself
+  // while this flag is set, and we flush it right after the gesture ends.
 
   card.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return; // ignore right/middle click
@@ -894,6 +903,7 @@ function attachSwipeToDelete(wrap, onTap) {
     startX = e.clientX;
     dragging = true;
     maxDrag = 0;
+    state.interactionActive = true;
     card.style.transition = 'none';
     card.setPointerCapture(activePointerId);
   });
@@ -910,13 +920,18 @@ function attachSwipeToDelete(wrap, onTap) {
   const endInteraction = (e) => {
     if (!dragging || (e && e.pointerId !== activePointerId)) return;
     dragging = false;
+    state.interactionActive = false; // safe to let render() touch the DOM again from here on
     card.style.transition = 'transform 0.15s ease';
     if (currentX < -threshold) {
       card.style.transform = `translateX(-120%)`;
       setTimeout(() => deleteShoppingItem(wrap.dataset.id), 150);
     } else {
       card.style.transform = 'translateX(0)';
-      if (maxDrag < tapThreshold && onTap) onTap();
+      if (maxDrag < tapThreshold && onTap) {
+        onTap(); // toggleItemPurchased() renders on its own — that also clears renderPending
+      } else if (state.renderPending) {
+        render(); // no local action fired a render, but a poll landed mid-gesture — flush it now
+      }
     }
     currentX = 0;
     activePointerId = null;
