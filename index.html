@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>StockIt - רשימת קניות ומלאי</title>
-<meta name="theme-color" content="#22c55e">
+<meta name="theme-color" content="#2F7A52">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,339 +17,162 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          heebo: ['Heebo', 'sans-serif'],
+          mono: ['"Space Mono"', 'monospace'],
+        },
+        colors: {
+          // Grounded in the StockIt logo: warm parchment paper, deep navy ink,
+          // a grocery-basil green, a saffron gold, and a brick-tomato red —
+          // no gradients, no glassmorphism.
+          paper:     '#F7F2E4',
+          paper2:    '#EEE6D0',
+          surface:   '#FFFDF8',
+          inkline:   '#E3D9C1',
+          ink:       '#171F33',
+          dim:       '#8B8271',
+          basil:     { DEFAULT: '#2F7A52', light: '#E7F3EC', dark: '#4FB37F' },
+          saffron:   { DEFAULT: '#C98A1F', light: '#FBF0DB', dark: '#F0BC55' },
+          tomato:    { DEFAULT: '#C2452F', light: '#F8E2DC', dark: '#E5715A' },
+          night:     '#11162A',
+          night2:    '#1A2036',
+          night3:    '#262E49',
+          paperdark: '#F1ECDD',
+          dimdark:   '#8D93AF',
+        },
+        keyframes: {
+          sheetUp: { '0%': { transform: 'translateY(30px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+          stamp:   { '0%': { transform: 'scale(1)' }, '35%': { transform: 'scale(.94)' }, '65%': { transform: 'scale(1.035)' }, '100%': { transform: 'scale(1)' } },
+        },
+        animation: {
+          sheetUp: 'sheetUp .22s ease',
+          stamp:   'stamp .32s ease',
+        },
+      },
+    },
+  };
+</script>
+<style type="text/tailwindcss">
+  @layer base {
+    body { @apply bg-paper text-ink dark:bg-night dark:text-paperdark font-heebo; }
+  }
+  @layer components {
+    /* Purely state-driven classes (toggled by JS via classList, not re-rendered) —
+       everything else is styled with plain Tailwind utilities in the markup. */
+    .icon-btn        { @apply flex h-9 w-9 items-center justify-center rounded-full border border-inkline bg-paper2 text-base text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark; }
+    .tab-btn          { @apply flex flex-1 cursor-pointer flex-col items-center gap-0.5 rounded-lg py-2 text-xs font-semibold text-dim dark:text-dimdark; }
+    .tab-btn.active   { @apply bg-basil-light text-basil dark:bg-night3 dark:text-basil-dark; }
+    .overlay          { @apply fixed inset-0 z-50 hidden items-end justify-center bg-ink/50 dark:bg-black/60; }
+    .overlay.open     { @apply flex; }
+    .confirm-box      { @apply fixed inset-0 z-[60] hidden items-center justify-center bg-ink/50 p-5 dark:bg-black/60; }
+    .confirm-box.open { @apply flex; }
+    .toast            { @apply pointer-events-none fixed bottom-24 left-1/2 z-[80] max-w-[85%] -translate-x-1/2 rounded-full bg-ink px-4 py-2.5 text-center text-sm text-paper opacity-0 transition-opacity dark:bg-paperdark dark:text-night; }
+    .toast.show       { @apply opacity-100; }
+    .item-card.marked            { @apply border-tomato bg-tomato-light dark:bg-tomato/15; }
+    .item-card.marked .item-name { @apply text-tomato dark:text-tomato-dark; }
+    .mark-check                  { @apply hidden; }
+    .item-card.marked .mark-check { @apply flex; }
+    .low-stock            { @apply border-saffron bg-saffron-light dark:border-saffron-dark dark:bg-saffron/15; }
+    .low-stock .item-name  { @apply text-saffron dark:text-saffron-dark; }
+    .sync-dot.live { @apply bg-basil dark:bg-basil-dark; }
+  }
+</style>
 <style>
-  :root {
-    --bg: #f4f5f7;
-    --surface: #ffffff;
-    --surface-2: #eef0f3;
-    --text: #14161a;
-    --text-dim: #6b7280;
-    --border: #e3e5e9;
-    --shadow: 0 6px 20px rgba(20,22,26,0.08);
-    --accent: #22c55e;
-    --accent-dim: #dcfce7;
-    --danger: #ef4444;
-    --danger-dim: #fee2e2;
-    --warn: #f97316;
-    --warn-dim: #ffedd5;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-
-  [data-theme="dark"] {
-    --bg: #0f1115;
-    --surface: #1a1d23;
-    --surface-2: #23262e;
-    --text: #f2f3f5;
-    --text-dim: #9aa0aa;
-    --border: #2c2f38;
-    --shadow: 0 6px 24px rgba(0,0,0,0.4);
-    --accent: #34d399;
-    --accent-dim: #0f3d2a;
-    --danger: #f87171;
-    --danger-dim: #3f1414;
-    --warn: #fb923c;
-    --warn-dim: #422006;
-  }
-
+  /* Pure positional math (safe-area insets) — plainer as literal CSS than as
+     Tailwind's arbitrary-value calc() syntax. */
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body {
-    font-family: 'Heebo', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    -webkit-tap-highlight-color: transparent;
-    overscroll-behavior-y: contain;
-  }
-  .mono { font-family: 'Space Mono', monospace; }
-  button { font-family: inherit; }
-  input, select { font-family: 'Heebo', sans-serif; }
-
-  #app { max-width: 560px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
-
-  /* ---------- Header ---------- */
-  header.topbar {
-    position: sticky; top: 0; z-index: 30;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 10px;
-  }
-  .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
-  .brand .emoji { font-size: 22px; }
-  .header-actions { display: flex; align-items: center; gap: 8px; }
-  .icon-btn {
-    width: 38px; height: 38px; border-radius: 50%;
-    border: 1px solid var(--border); background: var(--surface-2);
-    color: var(--text); display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 17px;
-  }
-  .user-chip { display: flex; align-items: center; gap: 6px; }
-  .user-chip img { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent); }
-  .user-name { font-size: 12px; color: var(--text-dim); max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  /* ---------- Login screen ---------- */
-  #loginScreen {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 40px 24px; text-align: center; gap: 18px;
-  }
-  #loginScreen .emoji-big { font-size: 64px; }
-  #loginScreen h1 { font-size: 22px; margin: 0; }
-  #loginScreen p { color: var(--text-dim); margin: 0; font-size: 14px; max-width: 280px; }
-  #gsiButtonContainer { margin-top: 10px; }
-
-  /* ---------- Tabs ---------- */
-  nav.tabbar {
-    position: sticky; bottom: 0; z-index: 30;
-    display: flex; background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
-  }
-  nav.tabbar button {
-    flex: 1; border: none; background: transparent; color: var(--text-dim);
-    padding: 8px 4px; border-radius: var(--radius-sm); cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    font-size: 12px; font-weight: 600;
-  }
-  nav.tabbar button .tab-emoji { font-size: 20px; }
-  nav.tabbar button.active { color: var(--accent); background: var(--accent-dim); }
-
-  /* ---------- Search ---------- */
-  .search-wrap { padding: 12px 16px 4px; }
-  .search-box {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 10px 14px;
-  }
-  .search-box input {
-    flex: 1; border: none; background: transparent; color: var(--text); font-size: 14px; outline: none;
-  }
-  .search-box .emoji { opacity: 0.6; }
-
-  main { flex: 1; padding: 4px 16px 24px; overflow-y: auto; }
-
-  /* ---------- Section / dept groups ---------- */
-  .dept-group { margin-top: 16px; }
-  .dept-header {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 0 2px;
-  }
-  .dept-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .dept-title { font-size: 13px; font-weight: 700; color: var(--text-dim); }
-  .dept-count { font-size: 11px; color: var(--text-dim); margin-inline-start: auto; }
-
-  /* ---------- Item card ---------- */
-  .shopping-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .item-card-wrap { position: relative; border-radius: var(--radius); overflow: hidden; }
-  .item-card-wrap .delete-bg {
-    position: absolute; inset: 0; background: var(--danger); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-  .item-card {
-    position: relative; background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 10px 12px;
-    display: flex; align-items: center; gap: 8px;
-    box-shadow: var(--shadow);
-    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-    touch-action: pan-y; cursor: pointer;
-  }
-  .item-card.compact { flex-direction: column; align-items: stretch; gap: 2px; min-height: 62px; justify-content: center; }
-  .item-card.marked { background: var(--danger-dim); border-color: var(--danger); }
-  .item-card.marked .item-name { color: var(--danger); }
-  .mark-check {
-    position: absolute; top: 6px; inset-inline-end: 6px; width: 18px; height: 18px;
-    border-radius: 50%; background: var(--danger); color: #fff; font-size: 11px;
-    display: none; align-items: center; justify-content: center;
-  }
-  .item-card.marked .mark-check { display: flex; }
-
-  .item-info { flex: 1; min-width: 0; }
-  .item-name { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; line-height: 1.25; }
-  .item-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; display: flex; align-items: center; gap: 5px; }
-  .badge {
-    font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 20px; white-space: nowrap;
-  }
-  .badge-auto { background: var(--warn-dim); color: var(--warn); }
-  .badge-dept { color: #fff; }
-
-  .qty-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-  .qty-btn {
-    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
-    background: var(--surface-2); color: var(--text); font-size: 16px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-  }
-  .qty-val { min-width: 34px; text-align: center; font-size: 14px; font-weight: 700; }
-
-  .low-stock { border-color: var(--warn) !important; background: var(--warn-dim) !important; }
-  .low-stock .item-name { color: var(--warn); }
-
-  .empty-state {
-    text-align: center; padding: 48px 20px; color: var(--text-dim);
-  }
-  .empty-state .emoji { font-size: 40px; display: block; margin-bottom: 10px; }
-
-  /* ---------- FAB & add forms ---------- */
-  .fab {
-    position: fixed; bottom: calc(78px + env(safe-area-inset-bottom)); left: 50%;
-    transform: translateX(-50%);
-    max-width: 560px; width: calc(100% - 32px);
-    z-index: 25; display: flex; justify-content: center; pointer-events: none;
-  }
-  .fab button {
-    pointer-events: all;
-    background: var(--accent); color: #06210f; border: none;
-    padding: 13px 26px; border-radius: 999px; font-weight: 800; font-size: 14.5px;
-    box-shadow: 0 8px 20px rgba(34,197,94,0.35); cursor: pointer;
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  .clear-btn-wrap { padding: 4px 2px 8px; display: flex; justify-content: flex-end; }
-  .clear-btn {
-    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
-    padding: 8px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: pointer;
-  }
-
-  /* ---------- Modal / bottom sheet ---------- */
-  .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50;
-    display: none; align-items: flex-end; justify-content: center;
-  }
-  .overlay.open { display: flex; }
-  .sheet {
-    background: var(--surface); width: 100%; max-width: 560px;
-    border-radius: 20px 20px 0 0; padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
-    max-height: 88vh; overflow-y: auto;
-    animation: slideUp 0.2s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 14px; }
-  .sheet h2 { font-size: 17px; margin: 0 0 14px; }
-
-  .form-row { margin-bottom: 12px; }
-  .form-row label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 5px; font-weight: 600; }
-  .form-row input[type="text"], .form-row input[type="number"], .form-row select {
-    width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);
-    background: var(--surface-2); color: var(--text); font-size: 14px; outline: none;
-  }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-  .primary-btn {
-    width: 100%; background: var(--accent); color: #06210f; border: none;
-    padding: 13px; border-radius: var(--radius-sm); font-weight: 800; font-size: 14.5px; cursor: pointer; margin-top: 4px;
-  }
-  .secondary-btn {
-    width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
-    padding: 12px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13.5px; cursor: pointer; margin-top: 8px;
-  }
-
-  .transfer-row {
-    display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border);
-  }
-  .transfer-row:last-of-type { border-bottom: none; }
-  .transfer-row .t-name { flex: 1; font-size: 14px; font-weight: 600; }
-  .transfer-row .t-qty { display: flex; align-items: center; gap: 6px; }
-  .transfer-row .t-add label { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-dim); }
-
-  .toast {
-    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-    background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 999px;
-    font-size: 13px; z-index: 80; opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
-    max-width: 85%; text-align: center;
-  }
-  .toast.show { opacity: 1; }
-
-  .confirm-box {
-    position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); padding: 20px;
-  }
-  .confirm-box.open { display: flex; }
-  .confirm-card {
-    background: var(--surface); border-radius: var(--radius); padding: 20px; max-width: 340px; width: 100%;
-    text-align: center;
-  }
-  .confirm-card p { font-size: 14px; margin: 0 0 16px; }
-  .confirm-actions { display: flex; gap: 10px; }
-  .confirm-actions button { flex: 1; padding: 10px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; }
-  .confirm-actions .cancel { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-  .confirm-actions .ok { background: var(--accent); color: #06210f; }
-
-  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); display: inline-block; margin-inline-end: 4px; }
-  .sync-dot.live { background: var(--accent); }
-  .sync-status { font-size: 10.5px; color: var(--text-dim); display: flex; align-items: center; padding: 0 16px 4px; }
-
+  body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; min-height: 100vh; }
   ::-webkit-scrollbar { width: 0; height: 0; }
+  nav.tabbar { padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+  .fab { bottom: calc(78px + env(safe-area-inset-bottom)); }
+  .sheet { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
 </style>
 </head>
 <body>
-<div id="app">
+<div id="app" class="mx-auto flex min-h-screen max-w-[560px] flex-col">
 
-  <header class="topbar">
-    <div class="brand"><span class="emoji">🛒</span><span>StockIt</span></div>
-    <div class="header-actions">
+  <header class="sticky top-0 z-30 flex items-center justify-between gap-2.5 border-b border-inkline bg-surface/95 px-4 py-3 backdrop-blur dark:border-night3 dark:bg-night2/95">
+    <div class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+      <span class="text-xl">🛒</span>
+      <span>Stock<span class="text-basil dark:text-basil-dark">It</span></span>
+    </div>
+    <div class="flex items-center gap-2">
       <button class="icon-btn" id="themeToggle" title="החלף מצב תצוגה">🌙</button>
-      <div id="userChip" class="user-chip" style="display:none;">
-        <img id="userAvatar" src="" alt="">
-        <span id="userName" class="user-name"></span>
+      <div id="userChip" class="items-center gap-1.5" style="display:none;">
+        <img id="userAvatar" class="h-[30px] w-[30px] rounded-full ring-2 ring-basil dark:ring-basil-dark" src="" alt="">
+        <span id="userName" class="max-w-[80px] truncate text-xs text-dim dark:text-dimdark"></span>
         <button class="icon-btn" id="signOutBtn" title="יציאה">🚪</button>
       </div>
     </div>
   </header>
 
   <!-- ============ Login screen ============ -->
-  <div id="loginScreen" style="display:none;">
-    <div class="emoji-big">🛍️</div>
-    <h1>ברוכים הבאים</h1>
-    <p>התחברו כדי לנהל את רשימת הקניות והמלאי של הבית, בזמן אמת, יחד עם בני המשפחה.</p>
-    <div id="gsiButtonContainer"></div>
-    <p id="loginError" style="display:none; color: var(--danger); font-weight:700; font-size:13px;"></p>
+  <div id="loginScreen" class="flex-col items-center justify-center gap-[18px] px-6 py-10 text-center" style="display:none;">
+    <div class="relative flex h-24 w-24 items-center justify-center">
+      <div class="absolute inset-0 rounded-full bg-basil-light dark:bg-night3"></div>
+      <span class="relative text-5xl">🛍️</span>
+    </div>
+    <h1 class="m-0 text-xl font-extrabold">ברוכים הבאים</h1>
+    <p class="m-0 max-w-[280px] text-sm text-dim dark:text-dimdark">התחברו כדי לנהל את רשימת הקניות והמלאי של הבית, בזמן אמת, יחד עם בני המשפחה.</p>
+    <div id="gsiButtonContainer" class="mt-1"></div>
+    <p id="loginError" class="m-0 text-sm font-bold text-tomato dark:text-tomato-dark" style="display:none;"></p>
   </div>
 
   <!-- ============ Main app ============ -->
-  <div id="mainApp" style="display:none; flex-direction:column; flex:1;">
-    <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncText">מסתנכרן…</span></div>
+  <div id="mainApp" class="flex-col flex-1" style="display:none;">
+    <div class="sync-status flex items-center px-4 pb-1 text-[10.5px] text-dim dark:text-dimdark">
+      <span class="sync-dot me-1 inline-block h-[7px] w-[7px] rounded-full bg-dim dark:bg-dimdark" id="syncDot"></span>
+      <span id="syncText">מסתנכרן…</span>
+    </div>
 
-    <div class="search-wrap">
-      <div class="search-box">
-        <span class="emoji">🔎</span>
-        <input type="text" id="searchInput" placeholder="חיפוש מוצר…">
+    <div class="px-4 pb-1 pt-3">
+      <div class="flex items-center gap-2 rounded-2xl border border-inkline bg-surface px-3.5 py-2.5 dark:border-night3 dark:bg-night2">
+        <span class="opacity-60">🔎</span>
+        <input type="text" id="searchInput" placeholder="חיפוש מוצר…" class="flex-1 border-0 bg-transparent text-sm text-ink outline-none placeholder:text-dim dark:text-paperdark dark:placeholder:text-dimdark">
       </div>
     </div>
 
-    <div class="clear-btn-wrap" id="clearBtnWrap" style="display:none;">
-      <button class="clear-btn" id="openClearModalBtn">✅ ניקוי סימונים</button>
+    <div class="flex justify-end px-2.5 pb-2 pt-1" id="clearBtnWrap" style="display:none;">
+      <button id="openClearModalBtn" class="rounded-full border border-inkline bg-paper2 px-3.5 py-2 text-xs font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark">✅ ניקוי סימונים</button>
     </div>
 
-    <main id="mainContent"></main>
+    <main id="mainContent" class="flex-1 overflow-y-auto px-4 pb-6 pt-1"></main>
   </div>
 
-  <nav class="tabbar" id="tabbar" style="display:none;">
-    <button class="active" data-tab="shopping"><span class="tab-emoji">🛒</span>רשימת קניות</button>
-    <button data-tab="inventory"><span class="tab-emoji">📦</span>ניהול מלאי</button>
+  <nav class="tabbar sticky bottom-0 z-30 flex border-t border-inkline bg-surface px-2.5 pt-1.5 dark:border-night3 dark:bg-night2" id="tabbar" style="display:none;">
+    <button class="tab-btn active" data-tab="shopping"><span class="text-xl">🛒</span>רשימת קניות</button>
+    <button class="tab-btn" data-tab="inventory"><span class="text-xl">📦</span>ניהול מלאי</button>
   </nav>
 
-  <div class="fab" id="fabWrap" style="display:none;">
-    <button id="fabAddBtn">➕ הוספת מוצר</button>
+  <div class="fab pointer-events-none fixed left-1/2 z-[25] flex w-[calc(100%-32px)] max-w-[560px] -translate-x-1/2 justify-center" id="fabWrap" style="display:none;">
+    <button id="fabAddBtn" class="pointer-events-auto flex items-center gap-2 rounded-full bg-basil px-6 py-3.5 text-[14.5px] font-extrabold text-white shadow-[0_8px_20px_rgba(47,122,82,0.35)] dark:bg-basil-dark dark:text-night">➕ הוספת מוצר</button>
   </div>
 </div>
 
 <!-- ============ Add item sheet ============ -->
 <div class="overlay" id="addSheetOverlay">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <h2 id="addSheetTitle">הוספת מוצר לרשימת הקניות</h2>
-    <div class="form-row">
-      <label>שם המוצר</label>
-      <input type="text" id="newItemName" placeholder="לדוגמה: חלב">
+  <div class="sheet w-full max-w-[560px] max-h-[88vh] overflow-y-auto animate-sheetUp rounded-t-[20px] bg-surface px-[18px] pt-4 dark:bg-night2">
+    <div class="sheet-handle mx-auto mb-3.5 h-1 w-10 rounded-full bg-inkline dark:bg-night3"></div>
+    <h2 id="addSheetTitle" class="m-0 mb-3.5 text-[17px] font-bold">הוספת מוצר לרשימת הקניות</h2>
+    <div class="form-row mb-3">
+      <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">שם המוצר</label>
+      <input type="text" id="newItemName" placeholder="לדוגמה: חלב" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark">
     </div>
-    <div class="form-grid">
-      <div class="form-row">
-        <label>כמות</label>
-        <input type="number" id="newItemQty" value="1" min="0" step="0.5">
+    <div class="form-grid grid grid-cols-2 gap-2.5">
+      <div class="form-row mb-3">
+        <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">כמות</label>
+        <input type="number" id="newItemQty" value="1" min="0" step="0.5" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark">
       </div>
-      <div class="form-row">
-        <label>יחידת מידה</label>
-        <select id="newItemUnit">
+      <div class="form-row mb-3">
+        <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">יחידת מידה</label>
+        <select id="newItemUnit" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark">
           <option value="יחידה">יחידה</option>
           <option value="גרם">גרם</option>
           <option value="ק״ג">ק״ג</option>
@@ -360,33 +183,33 @@
         </select>
       </div>
     </div>
-    <div class="form-row">
-      <label>מחלקה</label>
-      <select id="newItemDept"></select>
+    <div class="form-row mb-3">
+      <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">מחלקה</label>
+      <select id="newItemDept" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark"></select>
     </div>
-    <button class="primary-btn" id="confirmAddBtn">הוספה</button>
-    <button class="secondary-btn" id="cancelAddBtn">ביטול</button>
+    <button id="confirmAddBtn" class="mt-1 w-full rounded-lg bg-basil py-3 text-[14.5px] font-extrabold text-white dark:bg-basil-dark dark:text-night">הוספה</button>
+    <button id="cancelAddBtn" class="mt-2 w-full rounded-lg border border-inkline bg-paper2 py-3 text-[13.5px] font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark">ביטול</button>
   </div>
 </div>
 
 <!-- ============ Clear checked -> transfer to inventory modal ============ -->
 <div class="overlay" id="clearSheetOverlay">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <h2>עדכון מלאי מפריטים שנקנו</h2>
+  <div class="sheet w-full max-w-[560px] max-h-[88vh] overflow-y-auto animate-sheetUp rounded-t-[20px] bg-surface px-[18px] pt-4 dark:bg-night2">
+    <div class="sheet-handle mx-auto mb-3.5 h-1 w-10 rounded-full bg-inkline dark:bg-night3"></div>
+    <h2 class="m-0 mb-3.5 text-[17px] font-bold">עדכון מלאי מפריטים שנקנו</h2>
     <div id="transferList"></div>
-    <button class="primary-btn" id="confirmTransferBtn">סיום ועדכון מלאי</button>
-    <button class="secondary-btn" id="cancelTransferBtn">ביטול</button>
+    <button id="confirmTransferBtn" class="mt-1 w-full rounded-lg bg-basil py-3 text-[14.5px] font-extrabold text-white dark:bg-basil-dark dark:text-night">סיום ועדכון מלאי</button>
+    <button id="cancelTransferBtn" class="mt-2 w-full rounded-lg border border-inkline bg-paper2 py-3 text-[13.5px] font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark">ביטול</button>
   </div>
 </div>
 
 <!-- ============ Duplicate confirm ============ -->
 <div class="confirm-box" id="dupConfirmBox">
-  <div class="confirm-card">
-    <p id="dupConfirmText"></p>
-    <div class="confirm-actions">
-      <button class="cancel" id="dupCancelBtn">ביטול</button>
-      <button class="ok" id="dupOkBtn">הוסף לכמות</button>
+  <div class="confirm-card w-full max-w-[340px] rounded-2xl bg-surface p-5 text-center dark:bg-night2">
+    <p id="dupConfirmText" class="m-0 mb-4 text-sm"></p>
+    <div class="confirm-actions flex gap-2.5">
+      <button id="dupCancelBtn" class="flex-1 rounded-lg border border-inkline bg-paper2 py-2.5 font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark">ביטול</button>
+      <button id="dupOkBtn" class="flex-1 rounded-lg bg-basil py-2.5 font-bold text-white dark:bg-basil-dark dark:text-night">הוסף לכמות</button>
     </div>
   </div>
 </div>
@@ -491,7 +314,8 @@ const state = {
   pendingDeleteShoppingIds: new Set(), // item ids being deleted — poll merges drop these even if the server still has them
   pendingDeleteInventoryIds: new Set(),
   interactionActive: false, // true between pointerdown and pointerup/cancel on a card
-  renderPending: false      // a render() got deferred while interactionActive was true
+  renderPending: false,     // a render() got deferred while interactionActive was true
+  justMarkedId: null        // item id to play the stamp animation for on its next render only
 };
 
 /* =========================================================================
@@ -718,13 +542,12 @@ function showApp(opts) {
    ========================================================================= */
 function initTheme() {
   const saved = localStorage.getItem('shopapp_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', saved);
+  document.documentElement.classList.toggle('dark', saved === 'dark');
   document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
 }
 function toggleTheme() {
-  const cur = document.documentElement.getAttribute('data-theme');
-  const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
+  const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+  document.documentElement.classList.toggle('dark', next === 'dark');
   localStorage.setItem('shopapp_theme', next);
   document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
 }
@@ -768,7 +591,7 @@ function renderShopping() {
   const main = document.getElementById('mainContent');
   const items = filteredShopping();
   if (!items.length) {
-    main.innerHTML = '<div class="empty-state"><span class="emoji">🧺</span>הרשימה ריקה. הוסיפו מוצר ראשון!</div>';
+    main.innerHTML = '<div class="empty-state flex flex-col items-center gap-2 rounded-2xl border border-dashed border-inkline px-5 py-12 text-center text-dim dark:border-night3 dark:text-dimdark"><span class="text-4xl">🧺</span>הרשימה ריקה. הוסיפו מוצר ראשון!</div>';
     return;
   }
   const groups = groupByDept(items);
@@ -776,13 +599,13 @@ function renderShopping() {
   DEPARTMENTS.forEach(dept => {
     const group = groups[dept.key];
     if (!group || !group.length) return;
-    html += `<div class="dept-group">
-      <div class="dept-header">
-        <span class="dept-dot" style="background:${dept.color}"></span>
-        <span class="dept-title">${dept.key}</span>
-        <span class="dept-count mono">${group.length}</span>
+    html += `<div class="dept-group mt-4">
+      <div class="dept-header mb-2 flex items-center gap-2 px-0.5">
+        <span class="dept-dot h-2.5 w-2.5 rounded-[3px]" style="background:${dept.color}"></span>
+        <span class="dept-title text-[13px] font-bold text-dim dark:text-dimdark">${dept.key}</span>
+        <span class="dept-count mono ms-auto font-mono text-[11px] text-dim dark:text-dimdark">${group.length}</span>
       </div>
-      <div class="shopping-grid">`;
+      <div class="shopping-grid grid grid-cols-2 gap-2">`;
     group.forEach(item => { html += shoppingItemCard(item, dept); });
     html += '</div></div>';
   });
@@ -791,17 +614,19 @@ function renderShopping() {
 }
 
 function shoppingItemCard(item, dept) {
+  const justMarked = item.id === state.justMarkedId ? 'animate-stamp' : '';
   return `
-  <div class="item-card-wrap" data-id="${item.id}">
-    <div class="delete-bg">🗑️</div>
-    <div class="item-card compact ${item.isPurchased ? 'marked' : ''}" data-id="${item.id}">
-      <div class="mark-check">✓</div>
-      <div class="item-info">
-        <div class="item-name">
+  <div class="item-card-wrap relative overflow-hidden rounded-2xl" data-id="${item.id}">
+    <div class="delete-bg absolute inset-0 flex items-center justify-center rounded-2xl bg-tomato text-xl text-white dark:bg-tomato-dark">🗑️</div>
+    <div class="item-card compact ${item.isPurchased ? 'marked' : ''} ${justMarked} relative flex min-h-[64px] cursor-pointer touch-pan-y flex-col justify-center gap-0.5 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm transition-colors dark:border-night3 dark:bg-night2" data-id="${item.id}">
+      <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
+      <div class="mark-check absolute end-1.5 top-1.5 h-[18px] w-[18px] items-center justify-center rounded-full bg-tomato text-[11px] text-white dark:bg-tomato-dark">✓</div>
+      <div class="item-info min-w-0 flex-1">
+        <div class="item-name flex flex-wrap items-center gap-1 text-[13.5px] font-semibold leading-tight">
           ${escapeHtml(item.itemName)}
-          ${item.isAutoAdded ? '<span class="badge badge-auto">⚠️ אוזל</span>' : ''}
+          ${item.isAutoAdded ? '<span class="badge badge-auto rounded-full bg-saffron-light px-1.5 py-0.5 text-[9.5px] font-bold text-saffron dark:bg-saffron/20 dark:text-saffron-dark">⚠️ אוזל</span>' : ''}
         </div>
-        <div class="item-sub mono">${item.quantity} ${item.unit}</div>
+        <div class="item-sub mono mt-0.5 font-mono text-[11.5px] text-dim dark:text-dimdark">${item.quantity} ${item.unit}</div>
       </div>
     </div>
   </div>`;
@@ -811,7 +636,7 @@ function renderInventory() {
   const main = document.getElementById('mainContent');
   const items = filteredInventory();
   if (!items.length) {
-    main.innerHTML = '<div class="empty-state"><span class="emoji">📦</span>אין עדיין פריטים במלאי.</div>';
+    main.innerHTML = '<div class="empty-state flex flex-col items-center gap-2 rounded-2xl border border-dashed border-inkline px-5 py-12 text-center text-dim dark:border-night3 dark:text-dimdark"><span class="text-4xl">📦</span>אין עדיין פריטים במלאי.</div>';
     return;
   }
   const groups = groupByDept(items);
@@ -819,31 +644,32 @@ function renderInventory() {
   DEPARTMENTS.forEach(dept => {
     const group = groups[dept.key];
     if (!group || !group.length) return;
-    html += `<div class="dept-group">
-      <div class="dept-header">
-        <span class="dept-dot" style="background:${dept.color}"></span>
-        <span class="dept-title">${dept.key}</span>
-        <span class="dept-count mono">${group.length}</span>
+    html += `<div class="dept-group mt-4">
+      <div class="dept-header mb-2 flex items-center gap-2 px-0.5">
+        <span class="dept-dot h-2.5 w-2.5 rounded-[3px]" style="background:${dept.color}"></span>
+        <span class="dept-title text-[13px] font-bold text-dim dark:text-dimdark">${dept.key}</span>
+        <span class="dept-count mono ms-auto font-mono text-[11px] text-dim dark:text-dimdark">${group.length}</span>
       </div>`;
-    group.forEach(item => { html += inventoryItemCard(item); });
+    group.forEach(item => { html += inventoryItemCard(item, dept); });
     html += '</div>';
   });
   main.innerHTML = html;
   attachInventoryHandlers();
 }
 
-function inventoryItemCard(item) {
+function inventoryItemCard(item, dept) {
   const low = item.quantity <= 1;
   return `
-  <div class="item-card ${low ? 'low-stock' : ''}" data-id="${item.id}" style="margin-bottom:8px;">
-    <div class="item-info">
-      <div class="item-name">${escapeHtml(item.itemName)}</div>
-      <div class="item-sub">${item.unit}</div>
+  <div class="item-card ${low ? 'low-stock' : ''} relative mb-2 flex items-center gap-2 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm dark:border-night3 dark:bg-night2" data-id="${item.id}">
+    <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
+    <div class="item-info min-w-0 flex-1">
+      <div class="item-name text-[13.5px] font-semibold">${escapeHtml(item.itemName)}</div>
+      <div class="item-sub text-[11.5px] text-dim dark:text-dimdark">${item.unit}</div>
     </div>
-    <div class="qty-controls">
-      <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
-      <span class="qty-val mono" data-qty-for="${item.id}">${item.quantity}</span>
-      <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+    <div class="qty-controls flex shrink-0 items-center gap-1.5">
+      <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="dec" data-id="${item.id}">−</button>
+      <span class="qty-val mono min-w-[34px] text-center font-mono text-sm font-bold" data-qty-for="${item.id}">${item.quantity}</span>
+      <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="inc" data-id="${item.id}">+</button>
     </div>
   </div>`;
 }
@@ -866,7 +692,9 @@ function toggleItemPurchased(id) {
   if (!item) return;
   item.isPurchased = !item.isPurchased; // optimistic
   state.pendingShoppingIds.add(id);
+  state.justMarkedId = item.isPurchased ? id : null; // one deliberate motion moment — only on marking, not un-marking
   render();
+  state.justMarkedId = null; // the class was already baked into this render's HTML; clear so later renders don't replay it
   apiCall('updateItem', { sheetName: 'ShoppingList', id, fields: { IsPurchased: item.isPurchased } })
     .catch(() => showToast('שגיאת סנכרון — ננסה שוב'))
     .finally(() => state.pendingShoppingIds.delete(id));
@@ -1103,15 +931,15 @@ function closeClearModal() { document.getElementById('clearSheetOverlay').classL
 function renderTransferList() {
   const wrap = document.getElementById('transferList');
   wrap.innerHTML = state.pendingTransfer.map(p => `
-    <div class="transfer-row" data-id="${p.id}">
-      <div class="t-name">${escapeHtml(p.itemName)}</div>
-      <div class="t-qty">
-        <button class="qty-btn" data-action="t-dec" data-id="${p.id}">−</button>
-        <span class="qty-val mono" data-t-qty="${p.id}">${p.quantityToAdd}</span>
-        <button class="qty-btn" data-action="t-inc" data-id="${p.id}">+</button>
+    <div class="transfer-row flex items-center gap-2.5 border-b border-inkline py-2.5 last:border-b-0 dark:border-night3" data-id="${p.id}">
+      <div class="t-name flex-1 text-sm font-semibold">${escapeHtml(p.itemName)}</div>
+      <div class="t-qty flex items-center gap-1.5">
+        <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-dec" data-id="${p.id}">−</button>
+        <span class="qty-val mono min-w-[34px] text-center font-mono text-sm font-bold" data-t-qty="${p.id}">${p.quantityToAdd}</span>
+        <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-inc" data-id="${p.id}">+</button>
       </div>
       <div class="t-add">
-        <label><input type="checkbox" data-action="t-toggle" data-id="${p.id}" ${p.addToInventory ? 'checked' : ''}> הוסף למלאי</label>
+        <label class="flex items-center gap-1 text-[11.5px] text-dim dark:text-dimdark"><input type="checkbox" class="accent-basil" data-action="t-toggle" data-id="${p.id}" ${p.addToInventory ? 'checked' : ''}> הוסף למלאי</label>
       </div>
     </div>`).join('');
 
