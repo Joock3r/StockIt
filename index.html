@@ -87,7 +87,7 @@
   /* Pure positional math (safe-area insets) — plainer as literal CSS than as
      Tailwind's arbitrary-value calc() syntax. */
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; overflow-x: hidden; touch-action: pan-y; }
   body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; min-height: 100vh; }
   ::-webkit-scrollbar { width: 0; height: 0; }
   nav.tabbar { padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
@@ -104,7 +104,6 @@
       <span>Stock<span class="text-basil dark:text-basil-dark">It</span></span>
     </div>
     <div class="flex items-center gap-2">
-      <button class="icon-btn" id="themeToggle" title="החלף מצב תצוגה">🌙</button>
       <div id="userChip" class="items-center gap-1.5" style="display:none;">
         <img id="userAvatar" class="h-[30px] w-[30px] rounded-full ring-2 ring-basil dark:ring-basil-dark" src="" alt="">
         <span id="userName" class="max-w-[80px] truncate text-xs text-dim dark:text-dimdark"></span>
@@ -535,21 +534,6 @@ function showApp(opts) {
   document.getElementById('userName').textContent = state.user.name || state.user.email || '';
   render(); // paint whatever's already in state (fresh data or a local cache) before the network catches up
   startPolling(opts);
-}
-
-/* =========================================================================
-   THEME
-   ========================================================================= */
-function initTheme() {
-  const saved = localStorage.getItem('shopapp_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.classList.toggle('dark', saved === 'dark');
-  document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
-}
-function toggleTheme() {
-  const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-  document.documentElement.classList.toggle('dark', next === 'dark');
-  localStorage.setItem('shopapp_theme', next);
-  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
 }
 
 /* =========================================================================
@@ -1006,7 +990,6 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
   render();
 });
 
-document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 document.getElementById('signOutBtn').addEventListener('click', signOut);
 document.getElementById('fabAddBtn').addEventListener('click', () => openAddSheet(state.activeTab));
 
@@ -1023,7 +1006,6 @@ if ('serviceWorker' in navigator) {
    INIT
    ========================================================================= */
 function init() {
-  initTheme();
   populateDeptSelect();
 
   const saved = localStorage.getItem('shopapp_session');
