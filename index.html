@@ -642,7 +642,9 @@ function renderInventory() {
 }
 
 function inventoryItemCard(item, dept) {
-  const low = item.quantity <= 1;
+  // Mirrors the server's dailyInventoryCheck() threshold logic: no Min set -> old default of 1.
+  const threshold = (item.min === null || item.min === undefined) ? 1 : item.min;
+  const low = item.quantity <= threshold;
   return `
   <div class="item-card ${low ? 'low-stock' : ''} relative mb-2 flex items-center gap-2 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm dark:border-night3 dark:bg-night2" data-id="${item.id}">
     <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
