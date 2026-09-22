@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="StockIt">
 <link rel="manifest" href="./manifest.json">
-<link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -87,8 +87,8 @@
   /* Pure positional math (safe-area insets) — plainer as literal CSS than as
      Tailwind's arbitrary-value calc() syntax. */
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; overflow-x: hidden; touch-action: pan-y; }
-  body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; min-height: 100vh; }
+  html, body { margin: 0; padding: 0; }
+  body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; min-height: 100vh; overflow-x: hidden; touch-action: pan-y; }
   ::-webkit-scrollbar { width: 0; height: 0; }
   nav.tabbar { padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
   .fab { bottom: calc(78px + env(safe-area-inset-bottom)); }
