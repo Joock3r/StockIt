@@ -563,6 +563,9 @@ function groupByDept(items) {
     if (!groups[d]) groups[d] = [];
     groups[d].push(i);
   });
+  Object.values(groups).forEach(group => {
+    group.sort((a, b) => (a.itemName || '').localeCompare(b.itemName || '', 'he'));
+  });
   return groups;
 }
 
@@ -688,7 +691,7 @@ function toggleItemPurchased(id) {
 
 function attachSwipeToDelete(wrap, onTap) {
   const card = wrap.querySelector('.item-card');
-  let startX = 0, currentX = 0, dragging = false, maxDrag = 0, activePointerId = null;
+  let startX = 0, startY = 0, currentX = 0, dragging = false, maxDragX = 0, maxDragY = 0, activePointerId = null;
   const threshold = 90;
   const tapThreshold = 16; // forgiving enough for normal finger jitter on a real tap
 
@@ -710,13 +713,22 @@ function attachSwipeToDelete(wrap, onTap) {
   // card — that would detach the very element holding pointer capture and
   // could silently swallow the tap's pointerup. render() defers itself
   // while this flag is set, and we flush it right after the gesture ends.
+  //
+  // maxDragY tracks vertical movement so a page-scroll drag that starts on
+  // a card is never mistaken for a tap (only X movement was checked before,
+  // so a purely vertical drag looked identical to a stationary tap and
+  // incorrectly marked the item). touch-action:pan-y lets the browser take
+  // native vertical scrolling — when it does, it fires pointercancel rather
+  // than pointerup, so cancel is treated as a plain reset, never a tap.
 
   card.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return; // ignore right/middle click
     activePointerId = e.pointerId;
     startX = e.clientX;
+    startY = e.clientY;
     dragging = true;
-    maxDrag = 0;
+    maxDragX = 0;
+    maxDragY = 0;
     state.interactionActive = true;
     card.style.transition = 'none';
     card.setPointerCapture(activePointerId);
@@ -725,34 +737,48 @@ function attachSwipeToDelete(wrap, onTap) {
   card.addEventListener('pointermove', (e) => {
     if (!dragging || e.pointerId !== activePointerId) return;
     currentX = e.clientX - startX;
-    maxDrag = Math.max(maxDrag, Math.abs(currentX));
+    maxDragX = Math.max(maxDragX, Math.abs(currentX));
+    maxDragY = Math.max(maxDragY, Math.abs(e.clientY - startY));
     // RTL: swipe left reveals delete -> use negative currentX
     const clamped = Math.min(0, currentX);
     card.style.transform = `translateX(${clamped}px)`;
   });
 
-  const endInteraction = (e) => {
-    if (!dragging || (e && e.pointerId !== activePointerId)) return;
+  const resetVisual = () => {
+    card.style.transition = 'transform 0.15s ease';
+    card.style.transform = 'translateX(0)';
+    currentX = 0;
+    activePointerId = null;
+  };
+
+  card.addEventListener('pointerup', (e) => {
+    if (!dragging || e.pointerId !== activePointerId) return;
     dragging = false;
     state.interactionActive = false; // safe to let render() touch the DOM again from here on
     card.style.transition = 'transform 0.15s ease';
     if (currentX < -threshold) {
       card.style.transform = `translateX(-120%)`;
       setTimeout(() => deleteShoppingItem(wrap.dataset.id), 150);
+      currentX = 0;
+      activePointerId = null;
+    } else if (maxDragX < tapThreshold && maxDragY < tapThreshold && onTap) {
+      resetVisual();
+      onTap(); // toggleItemPurchased() renders on its own — that also clears renderPending
     } else {
-      card.style.transform = 'translateX(0)';
-      if (maxDrag < tapThreshold && onTap) {
-        onTap(); // toggleItemPurchased() renders on its own — that also clears renderPending
-      } else if (state.renderPending) {
-        render(); // no local action fired a render, but a poll landed mid-gesture — flush it now
-      }
+      resetVisual();
+      if (state.renderPending) render(); // no local action fired a render, but a poll landed mid-gesture — flush it now
     }
-    currentX = 0;
-    activePointerId = null;
-  };
+  });
 
-  card.addEventListener('pointerup', endInteraction);
-  card.addEventListener('pointercancel', endInteraction);
+  // A cancel means the browser took over the gesture (e.g. native vertical
+  // scroll kicked in) — always just reset, never treat it as a tap or swipe.
+  card.addEventListener('pointercancel', (e) => {
+    if (!dragging || e.pointerId !== activePointerId) return;
+    dragging = false;
+    state.interactionActive = false;
+    resetVisual();
+    if (state.renderPending) render();
+  });
 }
 
 function deleteShoppingItem(id) {
