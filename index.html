@@ -77,6 +77,8 @@
     .item-card.marked .mark-check { @apply flex; }
     .low-stock            { @apply border-saffron bg-saffron-light dark:border-saffron-dark dark:bg-saffron/15; }
     .low-stock .item-name  { @apply text-saffron dark:text-saffron-dark; }
+    .out-of-stock { @apply border-tomato/40 bg-tomato-light dark:bg-tomato/10; }
+    .out-of-stock .item-name { @apply text-tomato dark:text-tomato-dark; }
     .sync-dot.live { @apply bg-basil dark:bg-basil-dark; }
   }
 </style>
@@ -114,7 +116,7 @@
   #userName { max-width: 100px; }
   #loginScreen { min-height: calc(100dvh - 76px); padding-bottom: 100px; }
   .login-logo { width: 112px; height: 112px; object-fit: contain; border-radius: 8px; }
-  #mainApp { min-width: 0; min-height: 0; }
+  #mainApp { min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
   .view-heading { flex-shrink: 0; padding: 26px 24px 18px; }
   .heading-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .view-title { margin: 0; font-size: 26px; line-height: 1.35; font-weight: 800; }
@@ -135,7 +137,7 @@
   #clearBtnWrap { flex-shrink: 0; padding: 8px 24px 0; }
   #openClearModalBtn { display: flex; align-items: center; gap: 7px; min-height: 44px; border: 0; background: transparent; color: var(--accent); padding: 6px 0; font-size: 13px; }
   #openClearModalBtn .lucide { width: 17px; height: 17px; }
-  #mainContent { min-height: 0; overflow-y: auto; padding: 0 24px 24px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  #mainContent { flex: none; overflow: visible; padding: 0 24px 24px; }
   #mainContent .dept-group { margin-top: 24px; }
   #mainContent .dept-header { gap: 8px; margin-bottom: 10px; }
   #mainContent .dept-title { min-width: 0; overflow-wrap: anywhere; font-size: 12px; font-weight: 600; color: var(--muted); }
@@ -143,21 +145,21 @@
   #mainContent .shopping-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #mainContent .item-card-wrap, #mainContent .item-card, #mainContent .delete-bg { border-radius: 8px; }
   #mainContent .item-card { box-shadow: 0 2px 4px #20272403; }
-  .item-card.compact { min-height: 116px; height: 100%; padding: 16px 16px 13px; gap: 12px; justify-content: space-between; }
+  #mainContent .item-card.compact { min-height: 56px; height: 56px; padding: 8px 12px; padding-inline-end: 48px; flex-direction: row; align-items: center; gap: 8px; }
   .item-card.compact > span { width: 3px; }
-  .item-card.compact .item-info { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; width: 100%; }
-  .item-card.compact .item-name { padding-inline-end: 22px; }
+  #mainContent .item-card.compact .item-info { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+  #mainContent .item-card.compact .item-name { display: block; min-width: 0; padding: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #mainContent .item-name { font-size: 15px; line-height: 1.6; font-weight: 600; overflow-wrap: anywhere; }
   #mainContent .item-sub { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .compact .item-sub { padding-inline-end: 30px; }
-  .item-card .mark-check { display: flex; top: 15px; inset-inline-end: 13px; width: 18px; height: 18px; border: 1.5px solid var(--line); background: transparent; color: transparent; }
+  #mainContent .compact .item-sub { flex-shrink: 0; margin: 0; padding: 0; font-size: 12px; white-space: nowrap; }
+  .item-card .mark-check { display: flex; position: static; flex: 0 0 16px; width: 16px; height: 16px; border: 1.5px solid var(--line); background: transparent; color: transparent; }
   .marked .mark-check { background: var(--accent); color: var(--surface); border-color: var(--accent); }
   .mark-check .lucide { width: 12px; height: 12px; stroke-width: 2.5; }
   .edit-item { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); }
-  .item-card-wrap > .edit-item { position: absolute; bottom: 1px; inset-inline-end: 3px; z-index: 2; }
+  .item-card-wrap > .edit-item { position: absolute; top: 50%; transform: translateY(-50%); inset-inline-end: 2px; z-index: 2; }
   .edit-item:hover { background: #66736D10; color: var(--accent); }
   .edit-item .lucide { width: 16px; height: 16px; }
-  #mainContent .stock-card { min-height: 90px; padding: 12px 14px; gap: 8px; }
+  #mainContent .stock-card { min-height: 64px; padding: 8px 12px; gap: 8px; }
   .stock-card .item-info { min-width: 0; }
   .stock-card .item-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
   .stock-label { font-size: 11px; font-weight: 600; color: #936100; }
@@ -170,12 +172,12 @@
   body .qty-val { min-width: 36px; max-width: 76px; font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   #mainContent .empty-state { min-height: 240px; justify-content: center; gap: 14px; border: none; border-radius: 0; font-size: 15px; }
   .empty-state .lucide { width: 34px; height: 34px; color: var(--accent); stroke-width: 1.3; }
-  nav.tabbar { position: static; flex-shrink: 0; width: 100%; max-width: 720px; min-height: 76px; gap: 12px; padding: 8px 24px calc(8px + env(safe-area-inset-bottom)); background: var(--surface); box-shadow: 0 -4px 20px #20272404; }
-  #tabbar .tab-btn { flex-direction: row; justify-content: center; gap: 10px; min-height: 48px; font-size: 13px; border-radius: 8px; }
+  nav.tabbar { position: static; flex-shrink: 0; align-items: center; width: 100%; max-width: 720px; min-height: 76px; gap: 12px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); background: var(--surface); box-shadow: 0 -4px 20px #20272404; }
+  #tabbar .tab-btn { min-width: 0; flex-direction: column; justify-content: center; gap: 3px; min-height: 52px; font-size: 12px; border-radius: 8px; }
   #tabbar .tab-btn.active { background: var(--accent-soft); color: var(--accent); }
-  #fabWrap { position: static; flex-shrink: 0; width: 100%; max-width: none; transform: none; padding: 14px 24px; border-top: 1px solid var(--line); background: var(--canvas); }
-  #fabAddBtn { min-height: 52px; border-radius: 8px; padding: 12px 24px; font-size: 14px; box-shadow: 0 6px 18px #147D6429; }
-  #fabAddBtn .lucide { width: 18px; height: 18px; }
+  #fabWrap { flex: 0 0 52px; justify-content: center; }
+  #fabAddBtn { width: 52px; height: 52px; min-height: 52px; justify-content: center; border-radius: 50%; padding: 0; box-shadow: 0 4px 12px #147D6429; }
+  #fabAddBtn .lucide { width: 24px; height: 24px; }
   .overlay, .confirm-box { backdrop-filter: blur(3px); }
   .overlay .sheet { max-width: 560px; max-height: 90dvh; border-radius: 8px 8px 0 0; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 60px #20272414; }
   .sheet h2 { font-size: 20px; margin-bottom: 22px; }
@@ -188,8 +190,8 @@
   .t-add { width: 100%; }
   .t-add label { min-height: 32px; justify-content: flex-start; gap: 8px; }
   input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
-  #toast { bottom: calc(158px + env(safe-area-inset-bottom)); border-radius: 8px; }
-  #undoBar { position: fixed; bottom: calc(158px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 45; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 20px; padding: 8px 10px 8px 18px; border-radius: 8px; background: var(--text); color: var(--surface); box-shadow: 0 8px 28px #20272426; font-size: 13px; }
+  #toast { bottom: calc(88px + env(safe-area-inset-bottom)); border-radius: 8px; }
+  #undoBar { position: fixed; bottom: calc(88px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 45; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 20px; padding: 8px 10px 8px 18px; border-radius: 8px; background: var(--text); color: var(--surface); box-shadow: 0 8px 28px #20272426; font-size: 13px; }
   #undoBar button { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; color: #90E0BD; font-weight: 600; }
   @keyframes syncPulse { 50% { opacity: .3; } }
   @media (max-width: 380px) {
@@ -200,11 +202,13 @@
     .view-title { font-size: 24px; }
     .search-wrap, #clearBtnWrap { padding-inline: 16px; }
     #mainContent { padding-inline: 16px; }
-    .item-card.compact { padding-inline: 12px; }
     #mainContent .stock-card { flex-wrap: wrap; }
     .stock-card .item-info { flex-basis: calc(100% - 60px); }
     .stock-card .qty-controls { margin-inline-start: auto; }
     .overlay .sheet { padding-inline: 18px; }
+  }
+  @media (max-width: 600px) {
+    #mainContent .shopping-grid { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   }
   @media (min-width: 760px) {
     .overlay { align-items: center; padding: 24px; }
@@ -270,11 +274,11 @@
     <main id="mainContent" class="flex-1 overflow-y-auto px-4 pb-6 pt-1"></main>
   </div>
 
-  <div class="fab pointer-events-none fixed left-1/2 z-[25] flex w-[calc(100%-32px)] max-w-[560px] -translate-x-1/2 justify-center" id="fabWrap" style="display:none;">
-    <button id="fabAddBtn" class="pointer-events-auto flex items-center gap-2 bg-basil font-extrabold text-white dark:bg-basil-dark dark:text-night"><i data-lucide="plus" aria-hidden="true"></i>הוספת מוצר</button>
-  </div>
   <nav class="tabbar sticky bottom-0 z-30 flex border-t border-inkline bg-surface px-2.5 pt-1.5 dark:border-night3 dark:bg-night2" id="tabbar" style="display:none;">
     <button class="tab-btn active" data-tab="shopping" aria-current="page"><i data-lucide="shopping-cart" aria-hidden="true"></i>רשימת קניות</button>
+    <div id="fabWrap" style="display:none;">
+      <button id="fabAddBtn" class="flex items-center bg-basil text-white dark:bg-basil-dark dark:text-night" title="הוספת מוצר" aria-label="הוספת מוצר"><i data-lucide="plus" aria-hidden="true"></i></button>
+    </div>
     <button class="tab-btn" data-tab="inventory"><i data-lucide="package" aria-hidden="true"></i>ניהול מלאי</button>
   </nav>
 </div>
@@ -789,11 +793,11 @@ function render() {
   } : null;
   const shopping = state.activeTab === 'shopping';
   const purchased = state.shopping.filter(item => item.isPurchased).length;
-  const low = state.inventory.filter(item => item.quantity <= (item.min ?? 1)).length;
+  const stockCounts = inventoryStockCounts(state.inventory);
   document.getElementById('viewTitle').textContent = shopping ? 'רשימת קניות' : 'ניהול מלאי';
   document.getElementById('listSummary').textContent = shopping
     ? `${purchased} מתוך ${state.shopping.length} מוצרים נקנו`
-    : `${state.inventory.length} מוצרים במלאי${low ? ' · ' + low + ' במלאי נמוך' : ''}`;
+    : `${state.inventory.length} מוצרים${stockCounts.low ? ' · ' + stockCounts.low + ' במלאי נמוך' : ''}${stockCounts.out ? ' · ' + stockCounts.out + ' לא במלאי' : ''}`;
   const progress = document.getElementById('shoppingProgress');
   progress.hidden = !shopping || !state.shopping.length;
   progress.max = state.shopping.length || 1;
@@ -872,7 +876,7 @@ function shoppingItemCard(item, dept) {
       <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
       <div class="mark-check absolute rounded-full" aria-hidden="true">${icon('check')}</div>
       <div class="item-info min-w-0 flex-1">
-        <div class="item-name flex flex-wrap items-center gap-1 text-[13.5px] font-semibold leading-tight">
+        <div class="item-name flex flex-wrap items-center gap-1 text-[13.5px] font-semibold leading-tight" title="${escapeHtml(item.itemName)}">
           ${escapeHtml(item.itemName)}
           ${item.isAutoAdded ? '<span class="badge badge-auto rounded-full bg-saffron-light px-1.5 py-0.5 text-[9.5px] font-bold text-saffron dark:bg-saffron/20 dark:text-saffron-dark">אוזל</span>' : ''}
         </div>
@@ -908,17 +912,38 @@ function renderInventory() {
   attachInventoryHandlers();
 }
 
+function sheetNumber(value) {
+  if ((typeof value !== 'number' && typeof value !== 'string') || String(value).trim() === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function inventoryStockState(item) {
+  const quantity = sheetNumber(item.quantity);
+  const minimum = sheetNumber(item.min);
+  if (quantity === null) return 'unknown';
+  if (quantity <= 0) return 'out';
+  if (minimum !== null && minimum >= 0 && quantity <= minimum) return 'low';
+  return 'available';
+}
+
+function inventoryStockCounts(items) {
+  return items.reduce((counts, item) => {
+    const status = inventoryStockState(item);
+    if (status === 'low' || status === 'out') counts[status]++;
+    return counts;
+  }, { low: 0, out: 0 });
+}
+
 function inventoryItemCard(item, dept) {
-  // Mirrors the server's dailyInventoryCheck() threshold logic: no Min set -> old default of 1.
-  const threshold = (item.min === null || item.min === undefined) ? 1 : item.min;
-  const low = item.quantity <= threshold;
+  const stock = inventoryStockState(item);
   const pending = item.id.startsWith('tmp-') || state.transferBusy;
   return `
-  <div class="item-card stock-card ${low ? 'low-stock' : ''} relative mb-2 flex items-center gap-2 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm dark:border-night3 dark:bg-night2" data-id="${escapeHtml(item.id)}">
+  <div class="item-card stock-card ${stock === 'low' ? 'low-stock' : stock === 'out' ? 'out-of-stock' : ''} relative mb-2 flex items-center gap-2 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm dark:border-night3 dark:bg-night2" data-id="${escapeHtml(item.id)}">
     <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
     <div class="item-info min-w-0 flex-1">
       <div class="item-name text-[13.5px] font-semibold">${escapeHtml(item.itemName)}</div>
-      <div class="item-sub text-[11.5px] text-dim dark:text-dimdark">${escapeHtml(item.unit)}${low ? `<span class="stock-label ${Number(item.quantity) === 0 ? 'out' : ''}">${Number(item.quantity) === 0 ? 'אזל' : 'מלאי נמוך'}</span>` : ''}</div>
+      <div class="item-sub text-[11.5px] text-dim dark:text-dimdark">${escapeHtml(item.unit)}${stock === 'low' || stock === 'out' ? `<span class="stock-label ${stock === 'out' ? 'out' : ''}">${stock === 'out' ? 'לא במלאי' : 'מלאי נמוך'}</span>` : ''}</div>
     </div>
     <button class="edit-item" data-edit-id="${escapeHtml(item.id)}" title="עריכת מוצר" aria-label="עריכת ${escapeHtml(item.itemName)}" ${pending ? 'disabled' : ''}>${icon('pencil')}</button>
     <div class="qty-controls flex shrink-0 items-center gap-1.5">
@@ -1445,9 +1470,9 @@ window.addEventListener('beforeunload', event => {
 /* =========================================================================
    TABS / SEARCH / THEME / SIGN-OUT WIRING
    ========================================================================= */
-document.querySelectorAll('#tabbar button').forEach(btn => {
+document.querySelectorAll('#tabbar [data-tab]').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('#tabbar button').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
+    document.querySelectorAll('#tabbar [data-tab]').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
     btn.classList.add('active');
     btn.setAttribute('aria-current', 'page');
     state.activeTab = btn.dataset.tab;
