@@ -159,9 +159,14 @@
   .item-card-wrap > .edit-item { position: absolute; top: 50%; transform: translateY(-50%); inset-inline-end: 2px; z-index: 2; }
   .edit-item:hover { background: #66736D10; color: var(--accent); }
   .edit-item .lucide { width: 16px; height: 16px; }
-  #mainContent .stock-card { min-height: 64px; padding: 8px 12px; gap: 8px; }
+  #mainContent .stock-card { min-height: 56px; height: 56px; padding: 5px 8px; gap: 6px; flex-wrap: nowrap; }
   .stock-card .item-info { min-width: 0; }
-  .stock-card .item-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  #mainContent .stock-card .item-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #mainContent .stock-card .item-sub { display: flex; align-items: center; flex-wrap: nowrap; gap: 4px; font-size: 11px; white-space: nowrap; }
+  .stock-card .edit-item { width: 32px; flex-basis: 32px; }
+  #mainContent .stock-card .qty-controls { gap: 2px; }
+  #mainContent .stock-card .qty-btn, #transferList .qty-btn { width: 36px; height: 44px; flex: 0 0 36px; }
+  #mainContent .stock-card .qty-val, #transferList .qty-val { min-width: 32px; max-width: none; font-size: 14px; white-space: nowrap; }
   .stock-label { font-size: 11px; font-weight: 600; color: #936100; }
   .stock-label.out { color: var(--danger); }
   .dark .stock-label { color: #EBC36B; }
@@ -185,10 +190,11 @@
   .sheet label { font-size: 13px; }
   .sheet > button { min-height: 48px; }
   .confirm-box .confirm-card { border-radius: 8px; }
-  #transferList .transfer-row { flex-wrap: wrap; gap: 8px; padding: 14px 0; }
-  .t-name { min-width: 90px; overflow-wrap: anywhere; }
-  .t-add { width: 100%; }
-  .t-add label { min-height: 32px; justify-content: flex-start; gap: 8px; }
+  #transferList .transfer-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 36px; align-items: center; min-height: 56px; height: 56px; gap: 6px; padding: 5px 0; }
+  #transferList .t-name { min-width: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #transferList .t-qty { gap: 2px; }
+  #transferList .t-add { width: 36px; }
+  #transferList .t-add label { width: 36px; min-height: 44px; justify-content: center; cursor: pointer; }
   input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
   #toast { bottom: calc(88px + env(safe-area-inset-bottom)); border-radius: 8px; }
   #undoBar { position: fixed; bottom: calc(88px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 45; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 20px; padding: 8px 10px 8px 18px; border-radius: 8px; background: var(--text); color: var(--surface); box-shadow: 0 8px 28px #20272426; font-size: 13px; }
@@ -202,9 +208,6 @@
     .view-title { font-size: 24px; }
     .search-wrap, #clearBtnWrap { padding-inline: 16px; }
     #mainContent { padding-inline: 16px; }
-    #mainContent .stock-card { flex-wrap: wrap; }
-    .stock-card .item-info { flex-basis: calc(100% - 60px); }
-    .stock-card .qty-controls { margin-inline-start: auto; }
     .overlay .sheet { padding-inline: 18px; }
   }
   @media (max-width: 600px) {
@@ -942,7 +945,7 @@ function inventoryItemCard(item, dept) {
   <div class="item-card stock-card ${stock === 'low' ? 'low-stock' : stock === 'out' ? 'out-of-stock' : ''} relative mb-2 flex items-center gap-2 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm dark:border-night3 dark:bg-night2" data-id="${escapeHtml(item.id)}">
     <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
     <div class="item-info min-w-0 flex-1">
-      <div class="item-name text-[13.5px] font-semibold">${escapeHtml(item.itemName)}</div>
+      <div class="item-name text-[13.5px] font-semibold" title="${escapeHtml(item.itemName)}">${escapeHtml(item.itemName)}</div>
       <div class="item-sub text-[11.5px] text-dim dark:text-dimdark">${escapeHtml(item.unit)}${stock === 'low' || stock === 'out' ? `<span class="stock-label ${stock === 'out' ? 'out' : ''}">${stock === 'out' ? 'לא במלאי' : 'מלאי נמוך'}</span>` : ''}</div>
     </div>
     <button class="edit-item" data-edit-id="${escapeHtml(item.id)}" title="עריכת מוצר" aria-label="עריכת ${escapeHtml(item.itemName)}" ${pending ? 'disabled' : ''}>${icon('pencil')}</button>
@@ -1319,14 +1322,14 @@ function renderTransferList() {
   const wrap = document.getElementById('transferList');
   wrap.innerHTML = state.pendingTransfer.map(p => `
     <div class="transfer-row flex items-center gap-2.5 border-b border-inkline py-2.5 last:border-b-0 dark:border-night3" data-id="${p.id}">
-      <div class="t-name flex-1 text-sm font-semibold">${escapeHtml(p.itemName)}</div>
+      <div class="t-name flex-1 text-sm font-semibold" title="${escapeHtml(p.itemName)}">${escapeHtml(p.itemName)}</div>
       <div class="t-qty flex items-center gap-1.5">
         <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-dec" data-id="${p.id}" aria-label="הפחתת כמות ${escapeHtml(p.itemName)}">${icon('minus')}</button>
         <span class="qty-val mono min-w-[34px] text-center font-mono text-sm font-bold" data-t-qty="${p.id}">${p.quantityToAdd}</span>
         <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-inc" data-id="${p.id}" aria-label="הוספת כמות ${escapeHtml(p.itemName)}">${icon('plus')}</button>
       </div>
       <div class="t-add">
-        <label class="flex items-center gap-1 text-[11.5px] text-dim dark:text-dimdark"><input type="checkbox" class="accent-basil" data-action="t-toggle" data-id="${p.id}" ${p.addToInventory ? 'checked' : ''}> הוסף למלאי</label>
+        <label class="flex items-center" title="הוספת ${escapeHtml(p.itemName)} למלאי"><input type="checkbox" class="accent-basil" data-action="t-toggle" data-id="${p.id}" ${p.addToInventory ? 'checked' : ''}><span class="sr-only">הוספת ${escapeHtml(p.itemName)} למלאי</span></label>
       </div>
     </div>`).join('');
 
