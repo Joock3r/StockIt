@@ -2,22 +2,22 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>StockIt - רשימת קניות ומלאי</title>
-<meta name="theme-color" content="#2F7A52">
+<meta name="theme-color" content="#147D64">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="StockIt">
 <link rel="manifest" href="./manifest.json">
-<link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="./icon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 <script>
   tailwind.config = {
     darkMode: 'class',
@@ -25,26 +25,23 @@
       extend: {
         fontFamily: {
           heebo: ['Heebo', 'sans-serif'],
-          mono: ['"Space Mono"', 'monospace'],
+          mono: ['Heebo', 'sans-serif'],
         },
         colors: {
-          // Grounded in the StockIt logo: warm parchment paper, deep navy ink,
-          // a grocery-basil green, a saffron gold, and a brick-tomato red —
-          // no gradients, no glassmorphism.
-          paper:     '#F7F2E4',
-          paper2:    '#EEE6D0',
-          surface:   '#FFFDF8',
-          inkline:   '#E3D9C1',
-          ink:       '#171F33',
-          dim:       '#8B8271',
-          basil:     { DEFAULT: '#2F7A52', light: '#E7F3EC', dark: '#4FB37F' },
-          saffron:   { DEFAULT: '#C98A1F', light: '#FBF0DB', dark: '#F0BC55' },
-          tomato:    { DEFAULT: '#C2452F', light: '#F8E2DC', dark: '#E5715A' },
-          night:     '#11162A',
-          night2:    '#1A2036',
-          night3:    '#262E49',
-          paperdark: '#F1ECDD',
-          dimdark:   '#8D93AF',
+          paper:     '#F4F6F6',
+          paper2:    '#EDF1F0',
+          surface:   '#FFFFFF',
+          inkline:   '#DEE5E2',
+          ink:       '#202724',
+          dim:       '#66736D',
+          basil:     { DEFAULT: '#147D64', light: '#EAF5F0', dark: '#69D3AC' },
+          saffron:   { DEFAULT: '#936100', light: '#FFF6DE', dark: '#EBC36B' },
+          tomato:    { DEFAULT: '#B84240', light: '#FBECEB', dark: '#F19791' },
+          night:     '#141917',
+          night2:    '#1D2521',
+          night3:    '#303C35',
+          paperdark: '#EDF3EF',
+          dimdark:   '#A2B3A9',
         },
         keyframes: {
           sheetUp: { '0%': { transform: 'translateY(30px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
@@ -74,8 +71,8 @@
     .confirm-box.open { @apply flex; }
     .toast            { @apply pointer-events-none fixed bottom-24 left-1/2 z-[80] max-w-[85%] -translate-x-1/2 rounded-full bg-ink px-4 py-2.5 text-center text-sm text-paper opacity-0 transition-opacity dark:bg-paperdark dark:text-night; }
     .toast.show       { @apply opacity-100; }
-    .item-card.marked            { @apply border-tomato bg-tomato-light dark:bg-tomato/15; }
-    .item-card.marked .item-name { @apply text-tomato dark:text-tomato-dark; }
+    .item-card.marked            { @apply border-basil/30 bg-basil-light dark:bg-basil/15; }
+    .item-card.marked .item-name { @apply text-basil dark:text-basil-dark; }
     .mark-check                  { @apply hidden; }
     .item-card.marked .mark-check { @apply flex; }
     .low-stock            { @apply border-saffron bg-saffron-light dark:border-saffron-dark dark:bg-saffron/15; }
@@ -93,84 +90,211 @@
   nav.tabbar { padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
   .fab { bottom: calc(78px + env(safe-area-inset-bottom)); }
   .sheet { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+
+  :root { --canvas: #F4F6F6; --surface: #FFF; --text: #202724; --muted: #66736D; --line: #DEE5E2; --accent: #147D64; --accent-soft: #EAF5F0; --danger: #B84240; }
+  .dark { --canvas: #141917; --surface: #1D2521; --text: #EDF3EF; --muted: #A2B3A9; --line: #303C35; --accent: #69D3AC; --accent-soft: #223B30; --danger: #F19791; }
+  html { scroll-padding-top: 88px; }
+  body { background-color: var(--canvas); background-image: linear-gradient(90deg, transparent 99.8%, #66736D09 99.8%); background-size: 64px 64px; color: var(--text); font-family: Heebo, sans-serif; }
+  button, input, select { font: inherit; }
+  button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  button:disabled { cursor: wait; opacity: .5; }
+  button, input, select, [tabindex] { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  * { letter-spacing: 0 !important; }
+  [hidden] { display: none !important; }
+  .lucide { width: 20px; height: 20px; stroke-width: 1.8; flex-shrink: 0; }
+  #app { max-width: 720px; height: 100dvh; min-height: 100dvh; }
+  #app > header { flex-shrink: 0; min-height: 76px; padding: max(14px, env(safe-area-inset-top)) 24px 14px; background: var(--surface); backdrop-filter: none; }
+  .brand { direction: ltr; font-size: 25px; line-height: 1; }
+  .brand-symbol { display: grid; place-items: center; width: 38px; height: 38px; background: var(--accent); color: white; border-radius: 8px; }
+  .dark .brand-symbol { color: #141917; }
+  #app .icon-btn { min-width: 44px; min-height: 44px; border-radius: 8px; background: transparent; border-color: transparent; }
+  #app .icon-btn:hover { background: var(--canvas); }
+  #userChip { gap: 8px; }
+  #userName { max-width: 100px; }
+  #loginScreen { min-height: calc(100dvh - 76px); padding-bottom: 100px; }
+  .login-logo { width: 112px; height: 112px; object-fit: contain; border-radius: 8px; }
+  #mainApp { min-width: 0; min-height: 0; }
+  .view-heading { flex-shrink: 0; padding: 26px 24px 18px; }
+  .heading-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .view-title { margin: 0; font-size: 26px; line-height: 1.35; font-weight: 800; }
+  #app .sync-status { gap: 5px; padding: 0; font-size: 11px; white-space: nowrap; }
+  #syncDot { width: 6px; height: 6px; margin: 0; }
+  .sync-status[data-status="error"] { color: var(--danger); }
+  .sync-status[data-status="error"] #syncDot { background: var(--danger); }
+  .sync-status[data-status="busy"] #syncDot { background: #B88722; animation: syncPulse 1.4s ease-in-out infinite; }
+  .summary-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  #shoppingProgress { width: 104px; height: 5px; border: 0; border-radius: 3px; overflow: hidden; accent-color: var(--accent); background: var(--line); }
+  #shoppingProgress::-webkit-progress-bar { background: var(--line); }
+  #shoppingProgress::-webkit-progress-value { background: var(--accent); border-radius: 3px; transition: width .2s; }
+  #shoppingProgress::-moz-progress-bar { background: var(--accent); }
+  .search-wrap { flex-shrink: 0; padding: 0 24px 4px; }
+  .search-field { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); }
+  .search-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px #147D640C; }
+  #searchInput { min-width: 0; width: 100%; padding: 12px 0; font-size: 15px; }
+  #clearBtnWrap { flex-shrink: 0; padding: 8px 24px 0; }
+  #openClearModalBtn { display: flex; align-items: center; gap: 7px; min-height: 44px; border: 0; background: transparent; color: var(--accent); padding: 6px 0; font-size: 13px; }
+  #openClearModalBtn .lucide { width: 17px; height: 17px; }
+  #mainContent { min-height: 0; overflow-y: auto; padding: 0 24px 24px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  #mainContent .dept-group { margin-top: 24px; }
+  #mainContent .dept-header { gap: 8px; margin-bottom: 10px; }
+  #mainContent .dept-title { min-width: 0; overflow-wrap: anywhere; font-size: 12px; font-weight: 600; color: var(--muted); }
+  #mainContent .dept-count { font-variant-numeric: tabular-nums; font-size: 12px; }
+  #mainContent .shopping-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #mainContent .item-card-wrap, #mainContent .item-card, #mainContent .delete-bg { border-radius: 8px; }
+  #mainContent .item-card { box-shadow: 0 2px 4px #20272403; }
+  .item-card.compact { min-height: 116px; height: 100%; padding: 16px 16px 13px; gap: 12px; justify-content: space-between; }
+  .item-card.compact > span { width: 3px; }
+  .item-card.compact .item-info { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; width: 100%; }
+  .item-card.compact .item-name { padding-inline-end: 22px; }
+  #mainContent .item-name { font-size: 15px; line-height: 1.6; font-weight: 600; overflow-wrap: anywhere; }
+  #mainContent .item-sub { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .compact .item-sub { padding-inline-end: 30px; }
+  .item-card .mark-check { display: flex; top: 15px; inset-inline-end: 13px; width: 18px; height: 18px; border: 1.5px solid var(--line); background: transparent; color: transparent; }
+  .marked .mark-check { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+  .mark-check .lucide { width: 12px; height: 12px; stroke-width: 2.5; }
+  .edit-item { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); }
+  .item-card-wrap > .edit-item { position: absolute; bottom: 1px; inset-inline-end: 3px; z-index: 2; }
+  .edit-item:hover { background: #66736D10; color: var(--accent); }
+  .edit-item .lucide { width: 16px; height: 16px; }
+  #mainContent .stock-card { min-height: 90px; padding: 12px 14px; gap: 8px; }
+  .stock-card .item-info { min-width: 0; }
+  .stock-card .item-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .stock-label { font-size: 11px; font-weight: 600; color: #936100; }
+  .stock-label.out { color: var(--danger); }
+  .dark .stock-label { color: #EBC36B; }
+  .dark .stock-label.out { color: var(--danger); }
+  #mainContent .qty-controls { gap: 4px; }
+  body .qty-btn { width: 44px; height: 44px; border-radius: 8px; background: var(--surface); }
+  .qty-btn .lucide { width: 16px; height: 16px; }
+  body .qty-val { min-width: 36px; max-width: 76px; font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  #mainContent .empty-state { min-height: 240px; justify-content: center; gap: 14px; border: none; border-radius: 0; font-size: 15px; }
+  .empty-state .lucide { width: 34px; height: 34px; color: var(--accent); stroke-width: 1.3; }
+  nav.tabbar { position: static; flex-shrink: 0; width: 100%; max-width: 720px; min-height: 76px; gap: 12px; padding: 8px 24px calc(8px + env(safe-area-inset-bottom)); background: var(--surface); box-shadow: 0 -4px 20px #20272404; }
+  #tabbar .tab-btn { flex-direction: row; justify-content: center; gap: 10px; min-height: 48px; font-size: 13px; border-radius: 8px; }
+  #tabbar .tab-btn.active { background: var(--accent-soft); color: var(--accent); }
+  #fabWrap { position: static; flex-shrink: 0; width: 100%; max-width: none; transform: none; padding: 14px 24px; border-top: 1px solid var(--line); background: var(--canvas); }
+  #fabAddBtn { min-height: 52px; border-radius: 8px; padding: 12px 24px; font-size: 14px; box-shadow: 0 6px 18px #147D6429; }
+  #fabAddBtn .lucide { width: 18px; height: 18px; }
+  .overlay, .confirm-box { backdrop-filter: blur(3px); }
+  .overlay .sheet { max-width: 560px; max-height: 90dvh; border-radius: 8px 8px 0 0; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 60px #20272414; }
+  .sheet h2 { font-size: 20px; margin-bottom: 22px; }
+  .sheet input:not([type="checkbox"]), .sheet select { min-height: 48px; background: var(--canvas); font-size: 16px; }
+  .sheet label { font-size: 13px; }
+  .sheet > button { min-height: 48px; }
+  .confirm-box .confirm-card { border-radius: 8px; }
+  #transferList .transfer-row { flex-wrap: wrap; gap: 8px; padding: 14px 0; }
+  .t-name { min-width: 90px; overflow-wrap: anywhere; }
+  .t-add { width: 100%; }
+  .t-add label { min-height: 32px; justify-content: flex-start; gap: 8px; }
+  input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+  #toast { bottom: calc(158px + env(safe-area-inset-bottom)); border-radius: 8px; }
+  #undoBar { position: fixed; bottom: calc(158px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 45; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 20px; padding: 8px 10px 8px 18px; border-radius: 8px; background: var(--text); color: var(--surface); box-shadow: 0 8px 28px #20272426; font-size: 13px; }
+  #undoBar button { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; color: #90E0BD; font-weight: 600; }
+  @keyframes syncPulse { 50% { opacity: .3; } }
+  @media (max-width: 380px) {
+    #app > header { padding-inline: 16px; }
+    #userName { display: none; }
+    .view-heading { padding: 16px; }
+    .heading-top { gap: 8px; }
+    .view-title { font-size: 24px; }
+    .search-wrap, #clearBtnWrap { padding-inline: 16px; }
+    #mainContent { padding-inline: 16px; }
+    .item-card.compact { padding-inline: 12px; }
+    #mainContent .stock-card { flex-wrap: wrap; }
+    .stock-card .item-info { flex-basis: calc(100% - 60px); }
+    .stock-card .qty-controls { margin-inline-start: auto; }
+    .overlay .sheet { padding-inline: 18px; }
+  }
+  @media (min-width: 760px) {
+    .overlay { align-items: center; padding: 24px; }
+    .overlay .sheet { border-radius: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
 </style>
 </head>
 <body>
 <div id="app" class="mx-auto flex min-h-screen max-w-[560px] flex-col">
 
   <header class="sticky top-0 z-30 flex items-center justify-between gap-2.5 border-b border-inkline bg-surface/95 px-4 py-3 backdrop-blur dark:border-night3 dark:bg-night2/95">
-    <div class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
-      <span class="text-xl">🛒</span>
+    <div class="brand flex items-center gap-2 font-extrabold" aria-label="StockIt">
+      <span class="brand-symbol"><i data-lucide="shopping-bag" aria-hidden="true"></i></span>
       <span>Stock<span class="text-basil dark:text-basil-dark">It</span></span>
     </div>
     <div class="flex items-center gap-2">
       <div id="userChip" class="items-center gap-1.5" style="display:none;">
         <img id="userAvatar" class="h-[30px] w-[30px] rounded-full ring-2 ring-basil dark:ring-basil-dark" src="" alt="">
         <span id="userName" class="max-w-[80px] truncate text-xs text-dim dark:text-dimdark"></span>
-        <button class="icon-btn" id="signOutBtn" title="יציאה">🚪</button>
+        <button class="icon-btn" id="signOutBtn" title="יציאה" aria-label="יציאה"><i data-lucide="log-out" aria-hidden="true"></i></button>
       </div>
     </div>
   </header>
 
   <!-- ============ Login screen ============ -->
   <div id="loginScreen" class="flex-col items-center justify-center gap-[18px] px-6 py-10 text-center" style="display:none;">
-    <div class="relative flex h-24 w-24 items-center justify-center">
-      <div class="absolute inset-0 rounded-full bg-basil-light dark:bg-night3"></div>
-      <span class="relative text-5xl">🛍️</span>
-    </div>
+    <img class="login-logo" src="./icon-512.png" alt="StockIt" width="112" height="112">
     <h1 class="m-0 text-xl font-extrabold">ברוכים הבאים</h1>
-    <p class="m-0 max-w-[280px] text-sm text-dim dark:text-dimdark">התחברו כדי לנהל את רשימת הקניות והמלאי של הבית, בזמן אמת, יחד עם בני המשפחה.</p>
     <div id="gsiButtonContainer" class="mt-1"></div>
     <p id="loginError" class="m-0 text-sm font-bold text-tomato dark:text-tomato-dark" style="display:none;"></p>
   </div>
 
   <!-- ============ Main app ============ -->
   <div id="mainApp" class="flex-col flex-1" style="display:none;">
-    <div class="sync-status flex items-center px-4 pb-1 text-[10.5px] text-dim dark:text-dimdark">
-      <span class="sync-dot me-1 inline-block h-[7px] w-[7px] rounded-full bg-dim dark:bg-dimdark" id="syncDot"></span>
-      <span id="syncText">מסתנכרן…</span>
+    <div class="view-heading">
+      <div class="heading-top">
+        <h1 id="viewTitle" class="view-title">רשימת קניות</h1>
+        <div class="sync-status flex items-center text-dim dark:text-dimdark" data-status="busy" role="status" aria-live="polite">
+          <span class="sync-dot inline-block rounded-full" id="syncDot"></span>
+          <span id="syncText">טוען נתונים...</span>
+        </div>
+      </div>
+      <div class="summary-row">
+        <span id="listSummary"></span>
+        <progress id="shoppingProgress" value="0" max="1" aria-label="התקדמות הקניות"></progress>
+      </div>
     </div>
 
-    <div class="px-4 pb-1 pt-3">
-      <div class="flex items-center gap-2 rounded-2xl border border-inkline bg-surface px-3.5 py-2.5 dark:border-night3 dark:bg-night2">
-        <span class="opacity-60">🔎</span>
-        <input type="text" id="searchInput" placeholder="חיפוש מוצר…" class="flex-1 border-0 bg-transparent text-sm text-ink outline-none placeholder:text-dim dark:text-paperdark dark:placeholder:text-dimdark">
+    <div class="search-wrap">
+      <div class="search-field">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input type="search" id="searchInput" aria-label="חיפוש מוצר" placeholder="חיפוש מוצר..." class="flex-1 border-0 bg-transparent text-sm text-ink outline-none placeholder:text-dim dark:text-paperdark dark:placeholder:text-dimdark">
       </div>
     </div>
 
     <div class="flex justify-end px-2.5 pb-2 pt-1" id="clearBtnWrap" style="display:none;">
-      <button id="openClearModalBtn" class="rounded-full border border-inkline bg-paper2 px-3.5 py-2 text-xs font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark">✅ ניקוי סימונים</button>
+      <button id="openClearModalBtn" class="font-bold"><i data-lucide="package-check" aria-hidden="true"></i>סיום קנייה ועדכון מלאי</button>
     </div>
 
     <main id="mainContent" class="flex-1 overflow-y-auto px-4 pb-6 pt-1"></main>
   </div>
 
-  <nav class="tabbar sticky bottom-0 z-30 flex border-t border-inkline bg-surface px-2.5 pt-1.5 dark:border-night3 dark:bg-night2" id="tabbar" style="display:none;">
-    <button class="tab-btn active" data-tab="shopping"><span class="text-xl">🛒</span>רשימת קניות</button>
-    <button class="tab-btn" data-tab="inventory"><span class="text-xl">📦</span>ניהול מלאי</button>
-  </nav>
-
   <div class="fab pointer-events-none fixed left-1/2 z-[25] flex w-[calc(100%-32px)] max-w-[560px] -translate-x-1/2 justify-center" id="fabWrap" style="display:none;">
-    <button id="fabAddBtn" class="pointer-events-auto flex items-center gap-2 rounded-full bg-basil px-6 py-3.5 text-[14.5px] font-extrabold text-white shadow-[0_8px_20px_rgba(47,122,82,0.35)] dark:bg-basil-dark dark:text-night">➕ הוספת מוצר</button>
+    <button id="fabAddBtn" class="pointer-events-auto flex items-center gap-2 bg-basil font-extrabold text-white dark:bg-basil-dark dark:text-night"><i data-lucide="plus" aria-hidden="true"></i>הוספת מוצר</button>
   </div>
+  <nav class="tabbar sticky bottom-0 z-30 flex border-t border-inkline bg-surface px-2.5 pt-1.5 dark:border-night3 dark:bg-night2" id="tabbar" style="display:none;">
+    <button class="tab-btn active" data-tab="shopping" aria-current="page"><i data-lucide="shopping-cart" aria-hidden="true"></i>רשימת קניות</button>
+    <button class="tab-btn" data-tab="inventory"><i data-lucide="package" aria-hidden="true"></i>ניהול מלאי</button>
+  </nav>
 </div>
 
 <!-- ============ Add item sheet ============ -->
-<div class="overlay" id="addSheetOverlay">
+<div class="overlay" id="addSheetOverlay" role="dialog" aria-modal="true" aria-labelledby="addSheetTitle" tabindex="-1">
   <div class="sheet w-full max-w-[560px] max-h-[88vh] overflow-y-auto animate-sheetUp rounded-t-[20px] bg-surface px-[18px] pt-4 dark:bg-night2">
     <div class="sheet-handle mx-auto mb-3.5 h-1 w-10 rounded-full bg-inkline dark:bg-night3"></div>
     <h2 id="addSheetTitle" class="m-0 mb-3.5 text-[17px] font-bold">הוספת מוצר לרשימת הקניות</h2>
     <div class="form-row mb-3">
-      <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">שם המוצר</label>
+      <label for="newItemName" class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">שם המוצר</label>
       <input type="text" id="newItemName" placeholder="לדוגמה: חלב" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark">
     </div>
     <div class="form-grid grid grid-cols-2 gap-2.5">
       <div class="form-row mb-3">
-        <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">כמות</label>
+        <label for="newItemQty" class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">כמות</label>
         <input type="number" id="newItemQty" value="1" min="0" step="0.5" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark">
       </div>
       <div class="form-row mb-3">
-        <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">יחידת מידה</label>
+        <label for="newItemUnit" class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">יחידת מידה</label>
         <select id="newItemUnit" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark">
           <option value="יחידה">יחידה</option>
           <option value="גרם">גרם</option>
@@ -183,7 +307,7 @@
       </div>
     </div>
     <div class="form-row mb-3">
-      <label class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">מחלקה</label>
+      <label for="newItemDept" class="mb-1.5 block text-[12.5px] font-semibold text-dim dark:text-dimdark">מחלקה</label>
       <select id="newItemDept" class="w-full rounded-lg border border-inkline bg-paper2 px-3 py-2.5 text-sm text-ink outline-none focus:border-basil dark:border-night3 dark:bg-night3 dark:text-paperdark dark:focus:border-basil-dark"></select>
     </div>
     <button id="confirmAddBtn" class="mt-1 w-full rounded-lg bg-basil py-3 text-[14.5px] font-extrabold text-white dark:bg-basil-dark dark:text-night">הוספה</button>
@@ -192,10 +316,10 @@
 </div>
 
 <!-- ============ Clear checked -> transfer to inventory modal ============ -->
-<div class="overlay" id="clearSheetOverlay">
+<div class="overlay" id="clearSheetOverlay" role="dialog" aria-modal="true" aria-labelledby="clearSheetTitle" tabindex="-1">
   <div class="sheet w-full max-w-[560px] max-h-[88vh] overflow-y-auto animate-sheetUp rounded-t-[20px] bg-surface px-[18px] pt-4 dark:bg-night2">
     <div class="sheet-handle mx-auto mb-3.5 h-1 w-10 rounded-full bg-inkline dark:bg-night3"></div>
-    <h2 class="m-0 mb-3.5 text-[17px] font-bold">עדכון מלאי מפריטים שנקנו</h2>
+    <h2 id="clearSheetTitle" class="m-0 mb-3.5 text-[17px] font-bold">עדכון מלאי מפריטים שנקנו</h2>
     <div id="transferList"></div>
     <button id="confirmTransferBtn" class="mt-1 w-full rounded-lg bg-basil py-3 text-[14.5px] font-extrabold text-white dark:bg-basil-dark dark:text-night">סיום ועדכון מלאי</button>
     <button id="cancelTransferBtn" class="mt-2 w-full rounded-lg border border-inkline bg-paper2 py-3 text-[13.5px] font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark">ביטול</button>
@@ -203,7 +327,7 @@
 </div>
 
 <!-- ============ Duplicate confirm ============ -->
-<div class="confirm-box" id="dupConfirmBox">
+<div class="confirm-box" id="dupConfirmBox" role="alertdialog" aria-modal="true" aria-labelledby="dupConfirmText" tabindex="-1">
   <div class="confirm-card w-full max-w-[340px] rounded-2xl bg-surface p-5 text-center dark:bg-night2">
     <p id="dupConfirmText" class="m-0 mb-4 text-sm"></p>
     <div class="confirm-actions flex gap-2.5">
@@ -213,7 +337,11 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="undoBar" hidden>
+  <span id="undoMessage" role="status"></span>
+  <button id="undoDeleteBtn"><i data-lucide="undo-2" aria-hidden="true"></i>ביטול מחיקה</button>
+</div>
 
 <script>
 /* =========================================================================
@@ -302,6 +430,12 @@ const state = {
   user: null,             // { name, email, picture, sub } — display only, not a security boundary
   sessionToken: null,     // issued by the backend after verifying the Google ID token server-side
   activeTab: 'shopping',
+  editingId: null,
+  transferBusy: false,
+  requests: 0,
+  dataVersion: 0,
+  loaded: false,
+  syncError: false,
   shopping: [],           // [{id,itemName,department,quantity,unit,isPurchased,isAutoAdded,createdAt}]
   inventory: [],          // [{id,itemName,department,quantity,unit,updatedAt}]
   search: '',
@@ -322,6 +456,14 @@ const state = {
    ========================================================================= */
 function uid() { return 'tmp-' + Math.random().toString(36).slice(2, 10); }
 
+function icon(name) {
+  return `<i data-lucide="${name}" aria-hidden="true"></i>`;
+}
+
+function renderIcons() {
+  if (window.lucide) lucide.createIcons();
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -331,23 +473,43 @@ function showToast(msg) {
 }
 
 function setSyncStatus(live) {
-  document.getElementById('syncDot').classList.toggle('live', live);
-  document.getElementById('syncText').textContent = live ? 'מסונכרן' : 'מסתנכרן…';
+  if (live === true) { state.loaded = true; state.syncError = false; }
+  if (live === false) state.syncError = true;
+  const busy = state.requests > 0 || hasPendingChanges();
+  const status = state.syncError ? 'error' : busy || !state.loaded ? 'busy' : 'live';
+  document.querySelector('.sync-status').dataset.status = status;
+  document.getElementById('syncDot').classList.toggle('live', status === 'live');
+  document.getElementById('syncText').textContent = status === 'error' ? 'שגיאת סנכרון'
+    : status === 'live' ? 'מסונכרן' : state.loaded ? 'מסנכרן...' : 'טוען נתונים...';
+}
+
+function hasPendingChanges() {
+  return state.transferBusy || state.pendingShoppingIds.size > 0 || state.pendingInventoryIds.size > 0
+    || state.pendingDeleteShoppingIds.size > 0 || state.pendingDeleteInventoryIds.size > 0;
 }
 
 /* =========================================================================
    API LAYER
    ========================================================================= */
 async function apiCall(action, payload) {
+  const sessionToken = state.sessionToken;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  const mutation = !['getAppData', 'login', 'loginAndFetch'].includes(action);
+  if (mutation) state.dataVersion++;
+  state.requests++;
+  setSyncStatus();
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
+      signal: controller.signal,
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight to Apps Script
       body: JSON.stringify({
         action,
-        payload: Object.assign({}, payload || {}, (action === 'login' || action === 'loginAndFetch') ? {} : { sessionToken: state.sessionToken })
+        payload: Object.assign({}, payload || {}, (action === 'login' || action === 'loginAndFetch') ? {} : { sessionToken })
       })
     });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     if (!json.ok) {
       const err = new Error(json.error || 'Unknown API error');
@@ -357,21 +519,96 @@ async function apiCall(action, payload) {
     return json.data;
   } catch (err) {
     console.error('API error:', err);
-    setSyncStatus(false);
-    if (err.code === 'unauthorized' || err.code === 'session_expired') {
-      handleSessionLoss();
+    if (sessionToken === state.sessionToken) {
+      setSyncStatus(false);
+      if (err.code === 'unauthorized' || err.code === 'session_expired') handleSessionLoss();
     }
     throw err;
+  } finally {
+    clearTimeout(timeout);
+    state.requests--;
+    if (mutation) state.dataVersion++;
+    setSyncStatus();
   }
 }
 
+let fetchInFlight = false;
 async function fetchAppData() {
-  const data = await apiCall('getAppData');
-  state.shopping = mergeWithPending_(state.shopping, data.shopping || [], state.pendingShoppingIds, state.pendingDeleteShoppingIds);
-  state.inventory = mergeWithPending_(state.inventory, data.inventory || [], state.pendingInventoryIds, state.pendingDeleteInventoryIds);
-  setSyncStatus(true);
-  cacheAppDataLocally_();
+  if (fetchInFlight || hasPendingChanges() || !state.sessionToken) return;
+  fetchInFlight = true;
+  const version = state.dataVersion;
+  const sessionToken = state.sessionToken;
+  try {
+    const data = await apiCall('getAppData');
+    if (sessionToken !== state.sessionToken || version !== state.dataVersion || hasPendingChanges()) return;
+    state.shopping = mergeWithPending_(state.shopping, data.shopping || [], state.pendingShoppingIds, state.pendingDeleteShoppingIds);
+    state.inventory = mergeWithPending_(state.inventory, data.inventory || [], state.pendingInventoryIds, state.pendingDeleteInventoryIds);
+    setSyncStatus(true);
+    cacheAppDataLocally_();
+    render();
+  } finally {
+    fetchInFlight = false;
+  }
+}
+
+const itemWrites = new Map();
+const fieldNames = { ItemName: 'itemName', Department: 'department', Quantity: 'quantity', Unit: 'unit', IsPurchased: 'isPurchased' };
+
+function localFields(fields) {
+  return Object.fromEntries(Object.entries(fields).map(([key, value]) => [fieldNames[key], value]));
+}
+
+function queueItemUpdate(sheetName, id, fields, delay = 0) {
+  const list = sheetName === 'ShoppingList' ? state.shopping : state.inventory;
+  const pending = sheetName === 'ShoppingList' ? state.pendingShoppingIds : state.pendingInventoryIds;
+  const item = list.find(entry => entry.id === id);
+  if (!item || id.startsWith('tmp-') || state.transferBusy || !state.sessionToken) return;
+  const key = sheetName + ':' + id;
+  let entry = itemWrites.get(key);
+  if (!entry) {
+    entry = { sheetName, id, confirmed: { ...item }, fields: {}, timer: null, running: false, sessionToken: state.sessionToken };
+    itemWrites.set(key, entry);
+  }
+  Object.assign(entry.fields, fields);
+  Object.assign(item, localFields(fields));
+  pending.add(id);
+  state.dataVersion++;
+  clearTimeout(entry.timer);
   render();
+  setSyncStatus();
+  entry.timer = setTimeout(() => flushItemUpdate(key, entry), delay);
+}
+
+async function flushItemUpdate(key, entry) {
+  if (entry.running || itemWrites.get(key) !== entry) return;
+  entry.running = true;
+  const pending = entry.sheetName === 'ShoppingList' ? state.pendingShoppingIds : state.pendingInventoryIds;
+  try {
+    while (Object.keys(entry.fields).length && entry.sessionToken === state.sessionToken) {
+      const fields = entry.fields;
+      entry.fields = {};
+      try {
+        await apiCall('updateItem', { sheetName: entry.sheetName, id: entry.id, fields });
+        Object.assign(entry.confirmed, localFields(fields));
+      } catch (error) {
+        if (entry.sessionToken !== state.sessionToken) return;
+        const list = entry.sheetName === 'ShoppingList' ? state.shopping : state.inventory;
+        const item = list.find(current => current.id === entry.id);
+        if (item) Object.assign(item, entry.confirmed, localFields(entry.fields));
+        showToast('לא ניתן לאשר את השמירה. יש לבדוק את הנתונים לאחר הסנכרון.');
+      }
+    }
+  } finally {
+    if (itemWrites.get(key) === entry) {
+      clearTimeout(entry.timer);
+      itemWrites.delete(key);
+      pending.delete(entry.id);
+      state.dataVersion++;
+      cacheAppDataLocally_();
+      render();
+      setSyncStatus();
+    }
+  }
 }
 
 /**
@@ -494,6 +731,8 @@ function showLoginError(msg) {
 
 /** Called when the backend rejects a session (expired, or access was revoked). */
 function handleSessionLoss() {
+  resetPendingActions();
+  state.user = null;
   state.sessionToken = null;
   localStorage.removeItem('shopapp_session');
   stopPolling();
@@ -508,6 +747,7 @@ function handleSessionLoss() {
 }
 
 function signOut() {
+  resetPendingActions();
   state.user = null;
   state.sessionToken = null;
   state.shopping = [];
@@ -543,8 +783,30 @@ function render() {
   if (state.interactionActive) { state.renderPending = true; return; }
   state.renderPending = false;
   renderClearBtnVisibility();
+  const active = document.activeElement;
+  const focusKey = active && active.closest('#mainContent') ? {
+    id: active.dataset.id, action: active.dataset.action, edit: active.dataset.editId
+  } : null;
+  const shopping = state.activeTab === 'shopping';
+  const purchased = state.shopping.filter(item => item.isPurchased).length;
+  const low = state.inventory.filter(item => item.quantity <= (item.min ?? 1)).length;
+  document.getElementById('viewTitle').textContent = shopping ? 'רשימת קניות' : 'ניהול מלאי';
+  document.getElementById('listSummary').textContent = shopping
+    ? `${purchased} מתוך ${state.shopping.length} מוצרים נקנו`
+    : `${state.inventory.length} מוצרים במלאי${low ? ' · ' + low + ' במלאי נמוך' : ''}`;
+  const progress = document.getElementById('shoppingProgress');
+  progress.hidden = !shopping || !state.shopping.length;
+  progress.max = state.shopping.length || 1;
+  progress.value = purchased;
   if (state.activeTab === 'shopping') renderShopping();
   else renderInventory();
+  renderIcons();
+  if (focusKey) {
+    const selector = focusKey.edit ? `[data-edit-id="${CSS.escape(focusKey.edit)}"]`
+      : focusKey.action ? `[data-id="${CSS.escape(focusKey.id)}"][data-action="${CSS.escape(focusKey.action)}"]`
+      : focusKey.id ? `.item-card[data-id="${CSS.escape(focusKey.id)}"]` : null;
+    if (selector) document.querySelector(selector)?.focus({ preventScroll: true });
+  }
 }
 
 function filteredShopping() {
@@ -578,7 +840,7 @@ function renderShopping() {
   const main = document.getElementById('mainContent');
   const items = filteredShopping();
   if (!items.length) {
-    main.innerHTML = '<div class="empty-state flex flex-col items-center gap-2 rounded-2xl border border-dashed border-inkline px-5 py-12 text-center text-dim dark:border-night3 dark:text-dimdark"><span class="text-4xl">🧺</span>הרשימה ריקה. הוסיפו מוצר ראשון!</div>';
+    main.innerHTML = `<div class="empty-state flex flex-col items-center text-center text-dim dark:text-dimdark">${icon(state.search.trim() ? 'search-x' : 'shopping-basket')}<span>${state.search.trim() ? 'לא נמצאו מוצרים' : 'רשימת הקניות ריקה'}</span></div>`;
     return;
   }
   const groups = groupByDept(items);
@@ -602,20 +864,22 @@ function renderShopping() {
 
 function shoppingItemCard(item, dept) {
   const justMarked = item.id === state.justMarkedId ? 'animate-stamp' : '';
+  const pending = item.id.startsWith('tmp-') || state.transferBusy;
   return `
-  <div class="item-card-wrap relative overflow-hidden rounded-2xl" data-id="${item.id}">
-    <div class="delete-bg absolute inset-0 flex items-center justify-center rounded-2xl bg-tomato text-xl text-white dark:bg-tomato-dark">🗑️</div>
-    <div class="item-card compact ${item.isPurchased ? 'marked' : ''} ${justMarked} relative flex min-h-[64px] cursor-pointer touch-pan-y flex-col justify-center gap-0.5 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm transition-colors dark:border-night3 dark:bg-night2" data-id="${item.id}">
+  <div class="item-card-wrap relative overflow-hidden rounded-2xl" data-id="${escapeHtml(item.id)}">
+    <div class="delete-bg absolute inset-0 flex items-center justify-center rounded-2xl bg-tomato text-xl text-white dark:bg-tomato-dark" aria-hidden="true">${icon('trash-2')}</div>
+    <div class="item-card compact ${item.isPurchased ? 'marked' : ''} ${justMarked} relative flex min-h-[64px] cursor-pointer touch-pan-y flex-col justify-center gap-0.5 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm transition-colors dark:border-night3 dark:bg-night2" data-id="${escapeHtml(item.id)}" role="checkbox" tabindex="0" aria-checked="${!!item.isPurchased}" aria-disabled="${!!pending}" aria-label="${escapeHtml(item.itemName)}">
       <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
-      <div class="mark-check absolute end-1.5 top-1.5 h-[18px] w-[18px] items-center justify-center rounded-full bg-tomato text-[11px] text-white dark:bg-tomato-dark">✓</div>
+      <div class="mark-check absolute rounded-full" aria-hidden="true">${icon('check')}</div>
       <div class="item-info min-w-0 flex-1">
         <div class="item-name flex flex-wrap items-center gap-1 text-[13.5px] font-semibold leading-tight">
           ${escapeHtml(item.itemName)}
-          ${item.isAutoAdded ? '<span class="badge badge-auto rounded-full bg-saffron-light px-1.5 py-0.5 text-[9.5px] font-bold text-saffron dark:bg-saffron/20 dark:text-saffron-dark">⚠️ אוזל</span>' : ''}
+          ${item.isAutoAdded ? '<span class="badge badge-auto rounded-full bg-saffron-light px-1.5 py-0.5 text-[9.5px] font-bold text-saffron dark:bg-saffron/20 dark:text-saffron-dark">אוזל</span>' : ''}
         </div>
-        <div class="item-sub mono mt-0.5 font-mono text-[11.5px] text-dim dark:text-dimdark">${item.quantity} ${item.unit}</div>
+        <div class="item-sub mono mt-0.5 font-mono text-[11.5px] text-dim dark:text-dimdark">${escapeHtml(item.quantity)} ${escapeHtml(item.unit)}</div>
       </div>
     </div>
+    <button class="edit-item" data-edit-id="${escapeHtml(item.id)}" title="עריכת מוצר" aria-label="עריכת ${escapeHtml(item.itemName)}" ${pending ? 'disabled' : ''}>${icon('pencil')}</button>
   </div>`;
 }
 
@@ -623,7 +887,7 @@ function renderInventory() {
   const main = document.getElementById('mainContent');
   const items = filteredInventory();
   if (!items.length) {
-    main.innerHTML = '<div class="empty-state flex flex-col items-center gap-2 rounded-2xl border border-dashed border-inkline px-5 py-12 text-center text-dim dark:border-night3 dark:text-dimdark"><span class="text-4xl">📦</span>אין עדיין פריטים במלאי.</div>';
+    main.innerHTML = `<div class="empty-state flex flex-col items-center text-center text-dim dark:text-dimdark">${icon(state.search.trim() ? 'search-x' : 'package-open')}<span>${state.search.trim() ? 'לא נמצאו מוצרים' : 'אין עדיין פריטים במלאי'}</span></div>`;
     return;
   }
   const groups = groupByDept(items);
@@ -648,23 +912,25 @@ function inventoryItemCard(item, dept) {
   // Mirrors the server's dailyInventoryCheck() threshold logic: no Min set -> old default of 1.
   const threshold = (item.min === null || item.min === undefined) ? 1 : item.min;
   const low = item.quantity <= threshold;
+  const pending = item.id.startsWith('tmp-') || state.transferBusy;
   return `
-  <div class="item-card ${low ? 'low-stock' : ''} relative mb-2 flex items-center gap-2 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm dark:border-night3 dark:bg-night2" data-id="${item.id}">
+  <div class="item-card stock-card ${low ? 'low-stock' : ''} relative mb-2 flex items-center gap-2 overflow-hidden rounded-2xl border border-inkline bg-surface py-2.5 pe-3 ps-4 shadow-sm dark:border-night3 dark:bg-night2" data-id="${escapeHtml(item.id)}">
     <span class="absolute inset-y-0 start-0 w-[5px]" style="background:${dept.color}"></span>
     <div class="item-info min-w-0 flex-1">
       <div class="item-name text-[13.5px] font-semibold">${escapeHtml(item.itemName)}</div>
-      <div class="item-sub text-[11.5px] text-dim dark:text-dimdark">${item.unit}</div>
+      <div class="item-sub text-[11.5px] text-dim dark:text-dimdark">${escapeHtml(item.unit)}${low ? `<span class="stock-label ${Number(item.quantity) === 0 ? 'out' : ''}">${Number(item.quantity) === 0 ? 'אזל' : 'מלאי נמוך'}</span>` : ''}</div>
     </div>
+    <button class="edit-item" data-edit-id="${escapeHtml(item.id)}" title="עריכת מוצר" aria-label="עריכת ${escapeHtml(item.itemName)}" ${pending ? 'disabled' : ''}>${icon('pencil')}</button>
     <div class="qty-controls flex shrink-0 items-center gap-1.5">
-      <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="dec" data-id="${item.id}">−</button>
-      <span class="qty-val mono min-w-[34px] text-center font-mono text-sm font-bold" data-qty-for="${item.id}">${item.quantity}</span>
-      <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="inc" data-id="${item.id}">+</button>
+      <button class="qty-btn flex items-center justify-center border border-inkline dark:border-night3" data-action="dec" data-id="${escapeHtml(item.id)}" title="הפחתת כמות" aria-label="הפחתת כמות ${escapeHtml(item.itemName)}" ${pending || Number(item.quantity) === 0 ? 'disabled' : ''}>${icon('minus')}</button>
+      <span class="qty-val text-center font-semibold" data-qty-for="${escapeHtml(item.id)}">${escapeHtml(item.quantity)}</span>
+      <button class="qty-btn flex items-center justify-center border border-inkline dark:border-night3" data-action="inc" data-id="${escapeHtml(item.id)}" title="הוספת כמות" aria-label="הוספת כמות ${escapeHtml(item.itemName)}" ${pending ? 'disabled' : ''}>${icon('plus')}</button>
     </div>
   </div>`;
 }
 
 function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* =========================================================================
@@ -678,15 +944,10 @@ function attachShoppingHandlers() {
 
 function toggleItemPurchased(id) {
   const item = state.shopping.find(i => i.id === id);
-  if (!item) return;
-  item.isPurchased = !item.isPurchased; // optimistic
-  state.pendingShoppingIds.add(id);
-  state.justMarkedId = item.isPurchased ? id : null; // one deliberate motion moment — only on marking, not un-marking
-  render();
-  state.justMarkedId = null; // the class was already baked into this render's HTML; clear so later renders don't replay it
-  apiCall('updateItem', { sheetName: 'ShoppingList', id, fields: { IsPurchased: item.isPurchased } })
-    .catch(() => showToast('שגיאת סנכרון — ננסה שוב'))
-    .finally(() => state.pendingShoppingIds.delete(id));
+  if (!item || id.startsWith('tmp-') || state.transferBusy) return;
+  state.justMarkedId = !item.isPurchased ? id : null;
+  queueItemUpdate('ShoppingList', id, { IsPurchased: !item.isPurchased });
+  state.justMarkedId = null;
 }
 
 function attachSwipeToDelete(wrap, onTap) {
@@ -722,6 +983,7 @@ function attachSwipeToDelete(wrap, onTap) {
   // than pointerup, so cancel is treated as a plain reset, never a tap.
 
   card.addEventListener('pointerdown', (e) => {
+    if (!e.isPrimary || card.getAttribute('aria-disabled') === 'true') return;
     if (e.pointerType === 'mouse' && e.button !== 0) return; // ignore right/middle click
     activePointerId = e.pointerId;
     startX = e.clientX;
@@ -781,13 +1043,64 @@ function attachSwipeToDelete(wrap, onTap) {
   });
 }
 
+let undoDeletion = null;
+
 function deleteShoppingItem(id) {
-  state.shopping = state.shopping.filter(i => i.id !== id); // optimistic
-  state.pendingDeleteShoppingIds.add(id); // keeps a mid-flight poll from re-adding it
+  const item = state.shopping.find(entry => entry.id === id);
+  if (!item || state.transferBusy || state.pendingShoppingIds.has(id)) {
+    render();
+    if (item) showToast('יש להמתין לסיום השמירה');
+    return;
+  }
+  if (!undoDeletion) undoDeletion = { items: [], timer: null, sessionToken: state.sessionToken };
+  undoDeletion.items.push({ ...item });
+  clearTimeout(undoDeletion.timer);
+  state.shopping = state.shopping.filter(entry => entry.id !== id);
+  state.pendingDeleteShoppingIds.add(id);
+  state.dataVersion++;
+  const batch = undoDeletion;
+  batch.timer = setTimeout(() => commitDeletion(batch), 6000);
+  document.getElementById('undoMessage').textContent = batch.items.length === 1 ? 'המוצר הוסר' : `${batch.items.length} מוצרים הוסרו`;
+  document.getElementById('undoBar').hidden = false;
+  document.getElementById('toast').classList.remove('show');
   render();
-  apiCall('deleteItems', { sheetName: 'ShoppingList', ids: [id] })
-    .catch(() => showToast('שגיאת סנכרון בעת מחיקה'))
-    .finally(() => state.pendingDeleteShoppingIds.delete(id));
+  setSyncStatus();
+}
+
+function undoShoppingDeletion() {
+  if (!undoDeletion) return;
+  clearTimeout(undoDeletion.timer);
+  for (const item of undoDeletion.items) {
+    state.shopping.push(item);
+    state.pendingDeleteShoppingIds.delete(item.id);
+  }
+  undoDeletion = null;
+  state.dataVersion++;
+  document.getElementById('undoBar').hidden = true;
+  render();
+  setSyncStatus();
+}
+
+async function commitDeletion(batch) {
+  if (undoDeletion !== batch || batch.sessionToken !== state.sessionToken) return;
+  undoDeletion = null;
+  document.getElementById('undoBar').hidden = true;
+  const ids = batch.items.map(item => item.id);
+  try {
+    await apiCall('deleteItems', { sheetName: 'ShoppingList', ids });
+  } catch (error) {
+    if (batch.sessionToken !== state.sessionToken) return;
+    state.shopping.push(...batch.items.filter(item => !state.shopping.some(current => current.id === item.id)));
+    showToast('לא ניתן לאשר את המחיקה. הפריטים הוחזרו עד לסנכרון.');
+  } finally {
+    if (batch.sessionToken === state.sessionToken) {
+      ids.forEach(id => state.pendingDeleteShoppingIds.delete(id));
+      state.dataVersion++;
+      cacheAppDataLocally_();
+      render();
+      setSyncStatus();
+    }
+  }
 }
 
 /* =========================================================================
@@ -802,21 +1115,10 @@ function attachInventoryHandlers() {
   });
 }
 
-const pendingBumpTimers_ = {}; // id -> setTimeout handle, coalesces rapid +/- taps
-
 function bumpInventory(id, delta) {
   const item = state.inventory.find(i => i.id === id);
   if (!item) return;
-  item.quantity = Math.max(0, item.quantity + delta); // optimistic
-  state.pendingInventoryIds.add(id);
-  render();
-
-  clearTimeout(pendingBumpTimers_[id]);
-  pendingBumpTimers_[id] = setTimeout(() => {
-    apiCall('updateItem', { sheetName: 'Inventory', id, fields: { Quantity: item.quantity } })
-      .catch(() => showToast('שגיאת סנכרון במלאי'))
-      .finally(() => { state.pendingInventoryIds.delete(id); delete pendingBumpTimers_[id]; });
-  }, 500); // wait for a pause in tapping before sending the final value
+  queueItemUpdate('Inventory', id, { Quantity: Math.max(0, Number(item.quantity) + delta) }, 500);
 }
 
 /* =========================================================================
@@ -828,19 +1130,39 @@ function populateDeptSelect() {
 }
 
 function openAddSheet(target) {
+  if (state.transferBusy) return;
+  state.editingId = null;
   state.addTarget = target;
+  document.getElementById('confirmAddBtn').textContent = 'הוספה';
   document.getElementById('addSheetTitle').textContent =
     target === 'inventory' ? 'הוספת מוצר למלאי' : 'הוספת מוצר לרשימת הקניות';
   document.getElementById('newItemName').value = '';
   document.getElementById('newItemQty').value = 1;
   document.getElementById('newItemUnit').value = 'יחידה';
   document.getElementById('newItemDept').value = 'שונות';
-  document.getElementById('addSheetOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('newItemName').focus(), 50);
+  openDialog('addSheetOverlay');
 }
-function closeAddSheet() { document.getElementById('addSheetOverlay').classList.remove('open'); }
+function closeAddSheet() { closeDialog('addSheetOverlay'); state.editingId = null; }
+
+function openEditSheet(id) {
+  if (state.transferBusy || id.startsWith('tmp-')) return;
+  const item = state[state.activeTab].find(entry => entry.id === id);
+  if (!item) return;
+  state.addTarget = state.activeTab;
+  state.editingId = id;
+  document.getElementById('addSheetTitle').textContent = 'עריכת מוצר';
+  document.getElementById('confirmAddBtn').textContent = 'שמירת שינויים';
+  document.getElementById('newItemName').value = item.itemName;
+  document.getElementById('newItemQty').value = item.quantity;
+  const unit = document.getElementById('newItemUnit');
+  if (!Array.from(unit.options).some(option => option.value === item.unit)) unit.add(new Option(item.unit, item.unit));
+  unit.value = item.unit;
+  document.getElementById('newItemDept').value = item.department;
+  openDialog('addSheetOverlay');
+}
 
 document.getElementById('newItemName').addEventListener('input', (e) => {
+  if (state.editingId) return;
   const guess = guessDepartment(e.target.value);
   if (guess) document.getElementById('newItemDept').value = guess;
 });
@@ -853,18 +1175,30 @@ document.getElementById('addSheetOverlay').addEventListener('click', (e) => {
 document.getElementById('confirmAddBtn').addEventListener('click', () => {
   const name = document.getElementById('newItemName').value.trim();
   if (!name) { showToast('נא להזין שם מוצר'); return; }
-  const qty = parseFloat(document.getElementById('newItemQty').value) || 1;
+  const qty = document.getElementById('newItemQty').valueAsNumber;
+  if (!Number.isFinite(qty) || qty < 0) { showToast('נא להזין כמות תקינה, אפס או יותר'); return; }
   const unit = document.getElementById('newItemUnit').value;
   const dept = document.getElementById('newItemDept').value;
+  const sheetName = state.addTarget === 'shopping' ? 'ShoppingList' : 'Inventory';
+  if (state.editingId) {
+    const item = state[state.addTarget].find(entry => entry.id === state.editingId);
+    if (!item) { showToast('המוצר כבר אינו ברשימה'); closeAddSheet(); return; }
+    if (state[state.addTarget].some(entry => entry.id !== item.id && entry.itemName.trim().toLowerCase() === name.toLowerCase())) {
+      showToast('מוצר בשם הזה כבר קיים ברשימה');
+      return;
+    }
+    queueItemUpdate(sheetName, item.id, { ItemName: name, Quantity: qty, Unit: unit, Department: dept });
+    closeAddSheet();
+    return;
+  }
 
   if (state.addTarget === 'shopping') {
     const dup = state.shopping.find(i => i.itemName.trim().toLowerCase() === name.toLowerCase());
     if (dup) {
+      if (dup.id.startsWith('tmp-')) { showToast('המוצר עדיין נשמר'); return; }
       showDupConfirm(name, () => {
-        dup.quantity += qty;
-        render();
-        apiCall('updateItem', { sheetName: 'ShoppingList', id: dup.id, fields: { Quantity: dup.quantity } })
-          .catch(() => showToast('שגיאת סנכרון'));
+        const current = state.shopping.find(item => item.id === dup.id);
+        if (current) queueItemUpdate('ShoppingList', current.id, { Quantity: Number(current.quantity) + qty });
         closeAddSheet();
       });
       return;
@@ -873,11 +1207,10 @@ document.getElementById('confirmAddBtn').addEventListener('click', () => {
   } else {
     const dup = state.inventory.find(i => i.itemName.trim().toLowerCase() === name.toLowerCase());
     if (dup) {
+      if (dup.id.startsWith('tmp-')) { showToast('המוצר עדיין נשמר'); return; }
       showDupConfirm(name, () => {
-        dup.quantity += qty;
-        render();
-        apiCall('updateItem', { sheetName: 'Inventory', id: dup.id, fields: { Quantity: dup.quantity } })
-          .catch(() => showToast('שגיאת סנכרון'));
+        const current = state.inventory.find(item => item.id === dup.id);
+        if (current) queueItemUpdate('Inventory', current.id, { Quantity: Number(current.quantity) + qty });
         closeAddSheet();
       });
       return;
@@ -888,24 +1221,40 @@ document.getElementById('confirmAddBtn').addEventListener('click', () => {
 });
 
 function addShoppingItemFlow(name, qty, unit, dept) {
-  const tempId = uid();
-  state.shopping.push({ id: tempId, itemName: name, department: dept, quantity: qty, unit, isPurchased: false, isAutoAdded: false, createdAt: new Date().toISOString() });
-  state.pendingShoppingIds.add(tempId);
-  render();
-  apiCall('addShoppingItem', { item: { itemName: name, department: dept, quantity: qty, unit } })
-    .then((res) => { const item = state.shopping.find(i => i.id === tempId); if (item && res && res.id) item.id = res.id; })
-    .catch(() => showToast('שגיאת סנכרון בעת הוספה'))
-    .finally(() => state.pendingShoppingIds.delete(tempId));
+  return addItemFlow('shopping', name, qty, unit, dept);
 }
 function addInventoryItemFlow(name, qty, unit, dept) {
+  return addItemFlow('inventory', name, qty, unit, dept);
+}
+
+async function addItemFlow(target, name, qty, unit, dept) {
   const tempId = uid();
-  state.inventory.push({ id: tempId, itemName: name, department: dept, quantity: qty, unit, updatedAt: new Date().toISOString() });
-  state.pendingInventoryIds.add(tempId);
+  const sessionToken = state.sessionToken;
+  const pending = target === 'shopping' ? state.pendingShoppingIds : state.pendingInventoryIds;
+  state[target].push({ id: tempId, itemName: name, department: dept, quantity: qty, unit,
+    ...(target === 'shopping' ? { isPurchased: false, isAutoAdded: false, createdAt: new Date().toISOString() } : { updatedAt: new Date().toISOString() }) });
+  pending.add(tempId);
   render();
-  apiCall('addInventoryItem', { item: { itemName: name, department: dept, quantity: qty, unit } })
-    .then((res) => { const item = state.inventory.find(i => i.id === tempId); if (item && res && res.id) item.id = res.id; })
-    .catch(() => showToast('שגיאת סנכרון בעת הוספה'))
-    .finally(() => state.pendingInventoryIds.delete(tempId));
+  try {
+    const result = await apiCall(target === 'shopping' ? 'addShoppingItem' : 'addInventoryItem', { item: { itemName: name, department: dept, quantity: qty, unit } });
+    if (sessionToken !== state.sessionToken) return;
+    if (!result || !result.id) throw new Error('Missing item ID');
+    const item = state[target].find(entry => entry.id === tempId);
+    if (item) item.id = result.id;
+  } catch (error) {
+    if (sessionToken !== state.sessionToken) return;
+    state[target] = state[target].filter(item => item.id !== tempId);
+    setSyncStatus(false);
+    showToast('לא ניתן לאשר את ההוספה. יש לבדוק בסנכרון לפני הוספה חוזרת.');
+  } finally {
+    if (sessionToken === state.sessionToken) {
+      pending.delete(tempId);
+      state.dataVersion++;
+      cacheAppDataLocally_();
+      render();
+      setSyncStatus();
+    }
+  }
 }
 
 /* Duplicate confirm dialog */
@@ -913,14 +1262,14 @@ let dupConfirmCallback = null;
 function showDupConfirm(name, onConfirm) {
   document.getElementById('dupConfirmText').textContent = `המוצר "${name}" כבר קיים ברשימה. האם להוסיף לכמות הקיימת?`;
   dupConfirmCallback = onConfirm;
-  document.getElementById('dupConfirmBox').classList.add('open');
+  openDialog('dupConfirmBox');
 }
 document.getElementById('dupCancelBtn').addEventListener('click', () => {
-  document.getElementById('dupConfirmBox').classList.remove('open');
+  closeDialog('dupConfirmBox');
   dupConfirmCallback = null;
 });
 document.getElementById('dupOkBtn').addEventListener('click', () => {
-  document.getElementById('dupConfirmBox').classList.remove('open');
+  closeDialog('dupConfirmBox');
   if (dupConfirmCallback) dupConfirmCallback();
   dupConfirmCallback = null;
 });
@@ -929,6 +1278,7 @@ document.getElementById('dupOkBtn').addEventListener('click', () => {
    CLEAR CHECKED -> TRANSFER TO INVENTORY
    ========================================================================= */
 function openClearModal() {
+  if (hasPendingChanges()) { showToast('יש להמתין לסיום השמירה'); return; }
   const checked = state.shopping.filter(i => i.isPurchased);
   if (!checked.length) return;
   state.pendingTransfer = checked.map(i => ({
@@ -936,9 +1286,9 @@ function openClearModal() {
     quantityToAdd: i.quantity, addToInventory: true
   }));
   renderTransferList();
-  document.getElementById('clearSheetOverlay').classList.add('open');
+  openDialog('clearSheetOverlay');
 }
-function closeClearModal() { document.getElementById('clearSheetOverlay').classList.remove('open'); }
+function closeClearModal() { if (!state.transferBusy) closeDialog('clearSheetOverlay'); }
 
 function renderTransferList() {
   const wrap = document.getElementById('transferList');
@@ -946,9 +1296,9 @@ function renderTransferList() {
     <div class="transfer-row flex items-center gap-2.5 border-b border-inkline py-2.5 last:border-b-0 dark:border-night3" data-id="${p.id}">
       <div class="t-name flex-1 text-sm font-semibold">${escapeHtml(p.itemName)}</div>
       <div class="t-qty flex items-center gap-1.5">
-        <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-dec" data-id="${p.id}">−</button>
+        <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-dec" data-id="${p.id}" aria-label="הפחתת כמות ${escapeHtml(p.itemName)}">${icon('minus')}</button>
         <span class="qty-val mono min-w-[34px] text-center font-mono text-sm font-bold" data-t-qty="${p.id}">${p.quantityToAdd}</span>
-        <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-inc" data-id="${p.id}">+</button>
+        <button class="qty-btn flex h-7 w-7 items-center justify-center rounded-full border border-inkline bg-paper2 text-base font-bold text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark" data-action="t-inc" data-id="${p.id}" aria-label="הוספת כמות ${escapeHtml(p.itemName)}">${icon('plus')}</button>
       </div>
       <div class="t-add">
         <label class="flex items-center gap-1 text-[11.5px] text-dim dark:text-dimdark"><input type="checkbox" class="accent-basil" data-action="t-toggle" data-id="${p.id}" ${p.addToInventory ? 'checked' : ''}> הוסף למלאי</label>
@@ -961,6 +1311,7 @@ function renderTransferList() {
     const p = state.pendingTransfer.find(x => x.id === el.dataset.id);
     if (p) p.addToInventory = el.checked;
   }));
+  renderIcons();
 }
 function bumpTransfer(id, delta) {
   const p = state.pendingTransfer.find(x => x.id === id);
@@ -975,28 +1326,120 @@ document.getElementById('clearSheetOverlay').addEventListener('click', (e) => {
   if (e.target.id === 'clearSheetOverlay') closeClearModal();
 });
 
-document.getElementById('confirmTransferBtn').addEventListener('click', () => {
+document.getElementById('confirmTransferBtn').addEventListener('click', async () => {
+  if (state.transferBusy || hasPendingChanges()) return;
   const toAdd = state.pendingTransfer.filter(p => p.addToInventory);
   const allIds = state.pendingTransfer.map(p => p.id);
-
-  // Optimistic: remove all checked items from shopping list regardless of inventory choice
-  state.shopping = state.shopping.filter(i => allIds.indexOf(i.id) === -1);
-
-  // Optimistic: merge into local inventory view for the ones flagged
-  toAdd.forEach(p => {
-    const existing = state.inventory.find(i => i.itemName.trim().toLowerCase() === p.itemName.trim().toLowerCase());
-    if (existing) existing.quantity += p.quantityToAdd;
-    else state.inventory.push({ id: uid(), itemName: p.itemName, department: p.department, quantity: p.quantityToAdd, unit: p.unit, updatedAt: new Date().toISOString() });
-  });
-
+  if (!allIds.length) return;
+  const sessionToken = state.sessionToken;
+  const button = document.getElementById('confirmTransferBtn');
+  state.transferBusy = true;
+  document.querySelectorAll('#clearSheetOverlay button, #clearSheetOverlay input').forEach(control => control.disabled = true);
+  document.getElementById('fabAddBtn').disabled = true;
+  button.textContent = 'מעדכן מלאי...';
   render();
-  closeClearModal();
-  showToast('המלאי עודכן ✅');
+  try {
+    if (toAdd.length) await apiCall('transferToInventory', { purchasedItems: toAdd });
+    if (sessionToken !== state.sessionToken) return;
+    const deleteIds = allIds.filter(id => toAdd.every(item => item.id !== id));
+    if (deleteIds.length) await apiCall('deleteItems', { sheetName: 'ShoppingList', ids: deleteIds });
+    if (sessionToken === state.sessionToken) showToast('הקנייה הסתיימה והמלאי עודכן');
+  } catch (error) {
+    if (sessionToken === state.sessionToken) showToast('לא ניתן לאשר את העדכון. יש לבדוק את המלאי לאחר הסנכרון.');
+  } finally {
+    if (sessionToken !== state.sessionToken) return;
+    state.transferBusy = false;
+    document.querySelectorAll('#clearSheetOverlay button, #clearSheetOverlay input').forEach(control => control.disabled = false);
+    document.getElementById('fabAddBtn').disabled = false;
+    button.textContent = 'סיום ועדכון מלאי';
+    closeClearModal();
+    state.pendingTransfer = [];
+    if (sessionToken === state.sessionToken) {
+      render();
+      await fetchAppData().catch(() => {});
+    }
+  }
+});
 
-  apiCall('transferToInventory', { purchasedItems: toAdd })
-    .then(() => apiCall('deleteItems', { sheetName: 'ShoppingList', ids: allIds.filter(id => toAdd.every(p => p.id !== id)) }))
-    .then(fetchAppData)
-    .catch(() => showToast('שגיאת סנכרון — נסה לרענן'));
+const dialogReturnFocus = new Map();
+
+function openDialog(id) {
+  const dialog = document.getElementById(id);
+  dialogReturnFocus.set(id, document.activeElement);
+  dialog.classList.add('open');
+  document.getElementById('app').inert = true;
+  document.getElementById('undoBar').inert = true;
+  document.body.style.overflow = 'hidden';
+  if (id === 'dupConfirmBox') document.getElementById('addSheetOverlay').inert = true;
+  (dialog.querySelector('input:not(:disabled), button:not(:disabled)') || dialog).focus({ preventScroll: true });
+}
+
+function closeDialog(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'dupConfirmBox') document.getElementById('addSheetOverlay').inert = false;
+  const open = document.querySelector('.overlay.open, .confirm-box.open');
+  document.getElementById('app').inert = !!open;
+  document.getElementById('undoBar').inert = !!open;
+  if (!open) document.body.style.overflow = '';
+  const previous = dialogReturnFocus.get(id);
+  dialogReturnFocus.delete(id);
+  if (previous?.isConnected && !previous.closest('[inert]')) previous.focus({ preventScroll: true });
+  else if (!open) document.getElementById('fabAddBtn').focus({ preventScroll: true });
+}
+
+function resetPendingActions() {
+  if (undoDeletion) clearTimeout(undoDeletion.timer);
+  undoDeletion = null;
+  document.getElementById('undoBar').hidden = true;
+  itemWrites.forEach(entry => clearTimeout(entry.timer));
+  itemWrites.clear();
+  state.pendingShoppingIds.clear();
+  state.pendingInventoryIds.clear();
+  state.pendingDeleteShoppingIds.clear();
+  state.pendingDeleteInventoryIds.clear();
+  state.dataVersion++;
+  state.editingId = null;
+  state.interactionActive = false;
+  state.transferBusy = false;
+  state.pendingTransfer = [];
+  document.querySelectorAll('#clearSheetOverlay button, #clearSheetOverlay input').forEach(control => control.disabled = false);
+  document.getElementById('fabAddBtn').disabled = false;
+  document.getElementById('confirmTransferBtn').textContent = 'סיום ועדכון מלאי';
+  dupConfirmCallback = null;
+  document.querySelectorAll('.overlay.open, .confirm-box.open').forEach(dialog => closeDialog(dialog.id));
+}
+
+document.getElementById('undoDeleteBtn').addEventListener('click', undoShoppingDeletion);
+document.getElementById('mainContent').addEventListener('click', event => {
+  const button = event.target.closest('[data-edit-id]');
+  if (button && !button.disabled) openEditSheet(button.dataset.editId);
+});
+document.getElementById('mainContent').addEventListener('keydown', event => {
+  const card = event.target.closest('[role="checkbox"]');
+  if (card && ['Enter', ' '].includes(event.key)) {
+    event.preventDefault();
+    if (!event.repeat) toggleItemPurchased(card.dataset.id);
+  }
+});
+document.addEventListener('keydown', event => {
+  const dialog = document.querySelector('.confirm-box.open') || document.querySelector('.overlay.open');
+  if (!dialog) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    if (dialog.id === 'dupConfirmBox') document.getElementById('dupCancelBtn').click();
+    else if (dialog.id === 'addSheetOverlay') closeAddSheet();
+    else closeClearModal();
+  }
+  if (event.key === 'Tab') {
+    const controls = Array.from(dialog.querySelectorAll('input:not(:disabled), select:not(:disabled), button:not(:disabled)')).filter(control => control.getClientRects().length);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (!first) { event.preventDefault(); dialog.focus(); }
+    else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+});
+window.addEventListener('beforeunload', event => {
+  if (hasPendingChanges()) { event.preventDefault(); event.returnValue = ''; }
 });
 
 /* =========================================================================
@@ -1004,8 +1447,9 @@ document.getElementById('confirmTransferBtn').addEventListener('click', () => {
    ========================================================================= */
 document.querySelectorAll('#tabbar button').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('#tabbar button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#tabbar button').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
     btn.classList.add('active');
+    btn.setAttribute('aria-current', 'page');
     state.activeTab = btn.dataset.tab;
     document.getElementById('searchInput').value = '';
     state.search = '';
@@ -1035,6 +1479,7 @@ if ('serviceWorker' in navigator) {
    ========================================================================= */
 function init() {
   populateDeptSelect();
+  renderIcons();
 
   const saved = localStorage.getItem('shopapp_session');
   if (saved) {
