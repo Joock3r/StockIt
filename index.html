@@ -14,74 +14,9 @@
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-<script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        fontFamily: {
-          heebo: ['Heebo', 'sans-serif'],
-          mono: ['Heebo', 'sans-serif'],
-        },
-        colors: {
-          paper:     '#F4F6F6',
-          paper2:    '#EDF1F0',
-          surface:   '#FFFFFF',
-          inkline:   '#DEE5E2',
-          ink:       '#202724',
-          dim:       '#66736D',
-          basil:     { DEFAULT: '#147D64', light: '#EAF5F0', dark: '#69D3AC' },
-          saffron:   { DEFAULT: '#936100', light: '#FFF6DE', dark: '#EBC36B' },
-          tomato:    { DEFAULT: '#B84240', light: '#FBECEB', dark: '#F19791' },
-          night:     '#141917',
-          night2:    '#1D2521',
-          night3:    '#303C35',
-          paperdark: '#EDF3EF',
-          dimdark:   '#A2B3A9',
-        },
-        keyframes: {
-          sheetUp: { '0%': { transform: 'translateY(30px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
-          stamp:   { '0%': { transform: 'scale(1)' }, '35%': { transform: 'scale(.94)' }, '65%': { transform: 'scale(1.035)' }, '100%': { transform: 'scale(1)' } },
-        },
-        animation: {
-          sheetUp: 'sheetUp .22s ease',
-          stamp:   'stamp .32s ease',
-        },
-      },
-    },
-  };
-</script>
-<style type="text/tailwindcss">
-  @layer base {
-    body { @apply bg-paper text-ink dark:bg-night dark:text-paperdark font-heebo; }
-  }
-  @layer components {
-    /* Purely state-driven classes (toggled by JS via classList, not re-rendered) —
-       everything else is styled with plain Tailwind utilities in the markup. */
-    .icon-btn        { @apply flex h-9 w-9 items-center justify-center rounded-full border border-inkline bg-paper2 text-base text-ink dark:border-night3 dark:bg-night3 dark:text-paperdark; }
-    .tab-btn          { @apply flex flex-1 cursor-pointer flex-col items-center gap-0.5 rounded-lg py-2 text-xs font-semibold text-dim dark:text-dimdark; }
-    .tab-btn.active   { @apply bg-basil-light text-basil dark:bg-night3 dark:text-basil-dark; }
-    .overlay          { @apply fixed inset-0 z-50 hidden items-end justify-center bg-ink/50 dark:bg-black/60; }
-    .overlay.open     { @apply flex; }
-    .confirm-box      { @apply fixed inset-0 z-[60] hidden items-center justify-center bg-ink/50 p-5 dark:bg-black/60; }
-    .confirm-box.open { @apply flex; }
-    .toast            { @apply pointer-events-none fixed bottom-24 left-1/2 z-[80] max-w-[85%] -translate-x-1/2 rounded-full bg-ink px-4 py-2.5 text-center text-sm text-paper opacity-0 transition-opacity dark:bg-paperdark dark:text-night; }
-    .toast.show       { @apply opacity-100; }
-    .item-card.marked            { @apply border-basil/30 bg-basil-light dark:bg-basil/15; }
-    .item-card.marked .item-name { @apply text-basil dark:text-basil-dark; }
-    .mark-check                  { @apply hidden; }
-    .item-card.marked .mark-check { @apply flex; }
-    .low-stock            { @apply border-saffron bg-saffron-light dark:border-saffron-dark dark:bg-saffron/15; }
-    .low-stock .item-name  { @apply text-saffron dark:text-saffron-dark; }
-    .out-of-stock { @apply border-tomato/40 bg-tomato-light dark:bg-tomato/10; }
-    .out-of-stock .item-name { @apply text-tomato dark:text-tomato-dark; }
-    .sync-dot.live { @apply bg-basil dark:bg-basil-dark; }
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="./assets/stockit.css">
+<script src="./assets/icons.js" defer></script>
 <style>
   /* Pure positional math (safe-area insets) — plainer as literal CSS than as
      Tailwind's arbitrary-value calc() syntax. */
@@ -440,8 +375,11 @@ const state = {
   editingId: null,
   transferBusy: false,
   requests: 0,
+  writeRequests: 0,
   dataVersion: 0,
   loaded: false,
+  cached: false,
+  lastSyncedAt: 0,
   syncError: false,
   shopping: [],           // [{id,itemName,department,quantity,unit,isPurchased,isAutoAdded,createdAt}]
   inventory: [],          // [{id,itemName,department,quantity,unit,updatedAt}]
@@ -480,14 +418,18 @@ function showToast(msg) {
 }
 
 function setSyncStatus(live) {
-  if (live === true) { state.loaded = true; state.syncError = false; }
+  if (live === true) { state.loaded = true; state.syncError = false; state.lastSyncedAt = Date.now(); }
   if (live === false) state.syncError = true;
-  const busy = state.requests > 0 || hasPendingChanges();
-  const status = state.syncError ? 'error' : busy || !state.loaded ? 'busy' : 'live';
-  document.querySelector('.sync-status').dataset.status = status;
+  const busy = state.writeRequests > 0 || hasPendingChanges();
+  const status = state.syncError ? 'error' : busy ? 'busy' : state.loaded ? 'live' : state.cached ? 'cached' : 'busy';
+  const indicator = document.querySelector('.sync-status');
+  indicator.dataset.status = status;
+  indicator.title = state.lastSyncedAt
+    ? 'אימות אחרון מול השרת: ' + new Date(state.lastSyncedAt).toLocaleString('he-IL') : 'ממתין לאימות מול השרת';
   document.getElementById('syncDot').classList.toggle('live', status === 'live');
   document.getElementById('syncText').textContent = status === 'error' ? 'שגיאת סנכרון'
-    : status === 'live' ? 'מסונכרן' : state.loaded ? 'מסנכרן...' : 'טוען נתונים...';
+    : status === 'cached' ? 'עותק שמור'
+    : status === 'live' ? 'מסונכרן' : busy ? 'מסנכרן...' : 'טוען נתונים...';
 }
 
 function hasPendingChanges() {
@@ -505,6 +447,7 @@ async function apiCall(action, payload) {
   const mutation = !['getAppData', 'login', 'loginAndFetch'].includes(action);
   if (mutation) state.dataVersion++;
   state.requests++;
+  if (mutation) state.writeRequests++;
   setSyncStatus();
   try {
     const res = await fetch(API_URL, {
@@ -534,6 +477,7 @@ async function apiCall(action, payload) {
   } finally {
     clearTimeout(timeout);
     state.requests--;
+    if (mutation) state.writeRequests--;
     if (mutation) state.dataVersion++;
     setSyncStatus();
   }
@@ -548,11 +492,13 @@ async function fetchAppData() {
   try {
     const data = await apiCall('getAppData');
     if (sessionToken !== state.sessionToken || version !== state.dataVersion || hasPendingChanges()) return;
+    const changed = !state.loaded || JSON.stringify([state.shopping, state.inventory])
+      !== JSON.stringify([data.shopping || [], data.inventory || []]);
     state.shopping = mergeWithPending_(state.shopping, data.shopping || [], state.pendingShoppingIds, state.pendingDeleteShoppingIds);
     state.inventory = mergeWithPending_(state.inventory, data.inventory || [], state.pendingInventoryIds, state.pendingDeleteInventoryIds);
     setSyncStatus(true);
     cacheAppDataLocally_();
-    render();
+    if (changed) render();
   } finally {
     fetchInFlight = false;
   }
@@ -626,9 +572,32 @@ async function flushItemUpdate(key, entry) {
  * is otherwise the slowest visible part of opening the app.
  */
 function cacheAppDataLocally_() {
+  if (!state.sessionToken || !state.user || hasPendingChanges() || state.syncError) return;
   try {
-    localStorage.setItem('shopapp_data_cache', JSON.stringify({ shopping: state.shopping, inventory: state.inventory }));
+    localStorage.setItem('shopapp_data_cache', JSON.stringify({
+      owner: state.user.email, lastSyncedAt: state.lastSyncedAt,
+      shopping: state.shopping, inventory: state.inventory
+    }));
   } catch (e) { /* storage full or unavailable — non-critical, skip */ }
+}
+
+function restoreSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('shopapp_session') || 'null');
+    if (!saved || !saved.user || !saved.user.email || !saved.sessionToken) return false;
+    state.user = saved.user;
+    state.sessionToken = saved.sessionToken;
+    try {
+      const cached = JSON.parse(localStorage.getItem('shopapp_data_cache') || 'null');
+      if (cached && cached.owner === saved.user.email && Array.isArray(cached.shopping) && Array.isArray(cached.inventory)) {
+        state.shopping = cached.shopping;
+        state.inventory = cached.inventory;
+        state.cached = true;
+        state.lastSyncedAt = Number.isFinite(cached.lastSyncedAt) ? cached.lastSyncedAt : 0;
+      }
+    } catch (error) {}
+    return true;
+  } catch (error) { return false; }
 }
 
 /**
@@ -677,7 +646,21 @@ function stopPolling() {
    AUTH (Google Identity Services)
    ========================================================================= */
 function initGoogleSignIn() {
-  if (!window.google || !google.accounts) { setTimeout(initGoogleSignIn, 300); return; }
+  if (state.sessionToken) return;
+  if (!window.google || !google.accounts) {
+    if (document.getElementById('googleIdentityScript')) return;
+    const script = document.createElement('script');
+    script.id = 'googleIdentityScript';
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = initGoogleSignIn;
+    script.onerror = () => {
+      script.remove();
+      showLoginError('לא ניתן לטעון את Google. יש לבדוק את החיבור ולרענן.');
+    };
+    document.head.append(script);
+    return;
+  }
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
     callback: handleCredentialResponse,
@@ -687,7 +670,6 @@ function initGoogleSignIn() {
     document.getElementById('gsiButtonContainer'),
     { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with', locale: 'he' }
   );
-  google.accounts.id.prompt();
 }
 
 function parseJwt(token) {
@@ -709,12 +691,16 @@ function handleCredentialResponse(response) {
     .then((session) => {
       state.user = { name: session.name, email: session.email, picture: session.picture };
       state.sessionToken = session.sessionToken;
-      localStorage.setItem('shopapp_session', JSON.stringify({ user: state.user, sessionToken: state.sessionToken }));
+      try {
+        localStorage.setItem('shopapp_session', JSON.stringify({ user: state.user, sessionToken: state.sessionToken }));
+      } catch (error) {
+        showToast('אחסון הדפדפן חסום. ההתחברות לא תישמר לאחר סגירה.');
+      }
       // Comes back in the same round trip as login — no separate getAppData() wait.
       state.shopping = (session.appData && session.appData.shopping) || [];
       state.inventory = (session.appData && session.appData.inventory) || [];
-      cacheAppDataLocally_();
       setSyncStatus(true);
+      cacheAppDataLocally_();
       showApp({ skipInitialFetch: true });
     })
     .catch((err) => {
@@ -741,7 +727,13 @@ function handleSessionLoss() {
   resetPendingActions();
   state.user = null;
   state.sessionToken = null;
+  state.shopping = [];
+  state.inventory = [];
+  state.loaded = false;
+  state.cached = false;
+  state.lastSyncedAt = 0;
   localStorage.removeItem('shopapp_session');
+  localStorage.removeItem('shopapp_data_cache');
   stopPolling();
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('tabbar').style.display = 'none';
@@ -749,8 +741,7 @@ function handleSessionLoss() {
   document.getElementById('userChip').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   showLoginError('החיבור פג — התחבר מחדש.');
-  // Try a silent re-auth if Google still has this browser signed in.
-  if (window.google && google.accounts) google.accounts.id.prompt();
+  initGoogleSignIn();
 }
 
 function signOut() {
@@ -759,6 +750,9 @@ function signOut() {
   state.sessionToken = null;
   state.shopping = [];
   state.inventory = [];
+  state.loaded = false;
+  state.cached = false;
+  state.lastSyncedAt = 0;
   localStorage.removeItem('shopapp_session');
   localStorage.removeItem('shopapp_data_cache');
   stopPolling();
@@ -768,6 +762,7 @@ function signOut() {
   document.getElementById('fabWrap').style.display = 'none';
   document.getElementById('userChip').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  initGoogleSignIn();
 }
 
 function showApp(opts) {
@@ -1508,38 +1503,15 @@ if ('serviceWorker' in navigator) {
 function init() {
   populateDeptSelect();
   renderIcons();
-
-  const saved = localStorage.getItem('shopapp_session');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed.user && parsed.sessionToken) {
-        state.user = parsed.user;
-        state.sessionToken = parsed.sessionToken;
-        try {
-          const cachedData = JSON.parse(localStorage.getItem('shopapp_data_cache') || 'null');
-          if (cachedData) {
-            state.shopping = cachedData.shopping || [];
-            state.inventory = cachedData.inventory || [];
-          }
-        } catch (e) { /* no usable cache — showApp() still works, just starts empty */ }
-        showApp(); // paints the cached data (if any) right away; startPolling() then refreshes for real
-        // Confirm the session is still valid server-side; fetchAppData()
-        // (called by startPolling inside showApp) will trigger
-        // handleSessionLoss() automatically if it's expired or revoked.
-      } else {
-        document.getElementById('loginScreen').style.display = 'flex';
-      }
-    } catch (e) {
-      document.getElementById('loginScreen').style.display = 'flex';
-    }
+  if (restoreSession()) {
+    showApp();
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
   }
   initGoogleSignIn();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+init();
 </script>
 </body>
 </html>
