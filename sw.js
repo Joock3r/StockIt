@@ -1,54 +1,39 @@
-const CACHE_NAME = 'shopping-app-shell-v1';
+const CACHE_NAME = 'stockit-shell-v5';
 const APP_SHELL = [
   './index.html',
+  './assets/stockit.css',
+  './assets/icons.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+      Promise.all(keys.filter((key) => key !== CACHE_NAME && (key.startsWith('stockit-shell-') || key === 'shopping-app-shell-v1')).map((key) => caches.delete(key)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Network-first for API calls (Google Apps Script), cache-first for the app shell.
 self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
-  const isApiCall = url.includes('script.google.com') || url.includes('script.googleusercontent.com');
-
-  if (isApiCall) {
-    event.respondWith(
-      fetch(event.request).catch(() => new Response(
-        JSON.stringify({ ok: false, error: 'offline' }),
-        { headers: { 'Content-Type': 'application/json' } }
-      ))
-    );
-    return;
-  }
-
+  const url = new URL(event.request.url);
+  const scope = new URL(self.registration.scope);
+  if (event.request.method !== 'GET' || url.origin !== scope.origin || !url.pathname.startsWith(scope.pathname)) return;
+  const key = event.request.mode === 'navigate' ? new URL('./index.html', scope).href : event.request;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || networkFetch;
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(key);
+      if (cached) return cached;
+      const response = await fetch(event.request);
+      if (response.ok) await cache.put(key, response.clone());
+      return response;
     })
   );
 });
